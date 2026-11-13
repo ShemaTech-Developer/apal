@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Schools — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav active" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Schools</h1>
+          <p>The school catalogue — add schools, edit details and control who can register.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <!-- Toolbar: search + Add School -->
+      <div class="admin-toolbar">
+        <div class="admin-search">
+          <span data-icon="search"></span>
+          <input id="schoolSearch" type="search" autocomplete="off" placeholder="Search school, district or sector…" aria-label="Search schools">
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="notes-summary" id="schoolSummary"></div>
+
+      <!-- Schools table (loaded from the server) -->
+      <div id="schoolsRoot">
+        <div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading schools from the server…</div></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Floating details card (click a row) -->
+  <div class="modal" id="detailModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="dmTitle">School</h2><button class="btn btn-ghost" data-close="detailModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="dmBody"><div class="notes-loading"><span class="spinner"></span> Loading…</div></div>
+      <div class="modal-actions" id="dmActions" hidden>
+        <button class="btn btn-success" id="dmEdit" type="button">Edit school</button>
+        <button class="btn btn-orange" id="dmToggle" type="button">Deactivate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / edit school modal -->
+  <div class="modal" id="formModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="fmTitle">Add a school</h2><button class="btn btn-ghost" data-close="formModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="fmError" class="alert error" role="alert"></div>
+      <form id="schoolForm" novalidate>
+        <input type="hidden" id="fmEditId">
+        <div class="field">
+          <label for="fmName">School name *</label>
+          <input id="fmName" type="text" maxlength="160" required placeholder="e.g. APADE High School" autocomplete="off">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="fmDistrict">District *</label>
+            <select id="fmDistrict" required><option value="">Choose district…</option></select>
+          </div>
+          <div class="field">
+            <label for="fmSector">Sector</label>
+            <input id="fmSector" type="text" maxlength="80" placeholder="e.g. Kicukiro" autocomplete="off">
+          </div>
+        </div>
+        <p class="field-hint">Schools appear in student and teacher registration once they are active.</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" data-close="formModal">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="fmSubmit">Add school</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtDate(s){ return s ? String(s).slice(0,10) : '—'; }
+  function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('') || '?'; }
+
+  var pageAlert = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    pageAlert.textContent = msg || '';
+    pageAlert.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ pageAlert.className = 'alert'; }, 4000);
+  }
+
+  var schools = [];
+  var currentId = null;
+  var busy = false;
+
+  var ADD_BTN = '<button class="btn btn-primary" id="addSchoolBtn" type="button">' + NN.icon('school') + ' Add School</button>';
+
+  function load(){
+    if(busy) return;
+    busy = true;
+    var q = document.getElementById('schoolSearch').value.trim();
+    var root = document.getElementById('schoolsRoot');
+    root.innerHTML = '<div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading schools from the server…</div></div>';
+
+    NN.api('/api/admin/schools?q=' + encodeURIComponent(q)).then(function(r){
+      busy = false;
+      if(!r.ok){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('shield')+'</div><h3>Administrator login required</h3><p>Sign in as administrator to manage schools.</p></div></div>';
+        document.getElementById('schoolSummary').innerHTML = '';
+        return;
+      }
+      schools = Array.isArray(r.data) ? r.data : [];
+
+      // Summary
+      var active = schools.filter(function(s){ return s.isActive; }).length;
+      var districts = new Set(schools.map(function(s){ return s.district; }).filter(Boolean));
+      var students = schools.reduce(function(sum,s){ return sum + (Number(s.students)||0); }, 0);
+      document.getElementById('schoolSummary').innerHTML =
+        '<div class="admin-stat"><div class="ic">'+NN.icon('school')+'</div><div><div class="n">'+schools.length+'</div><div class="l">Total schools</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('user-check')+'</div><div><div class="n">'+active+'</div><div class="l">Active</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('users')+'</div><div><div class="n">'+students+'</div><div class="l">Students enrolled</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('globe')+'</div><div><div class="n">'+districts.size+'</div><div class="l">Districts covered</div></div></div>';
+
+      if(!schools.length){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('school')+'</div><h3>'+(q ? 'No schools match your search' : 'No schools yet')+'</h3><p>'+(q ? 'Try a different name or district.' : 'Use Add School to build the catalogue.')+'</p><div style="margin-top:12px">' + ADD_BTN + '</div></div></div>';
+        return;
+      }
+
+      var rows = schools.map(function(s){
+        return '<tr data-id="' + s.id + '">' +
+          '<td class="user-cell"><span class="avatar">' + esc(initials(s.name)) + '</span><span><b>' + esc(s.name) + '</b><small>' + esc(s.sector ? s.sector + ' Sector' : (s.code ? s.code : '—')) + '</small></span></td>' +
+          '<td>' + esc(s.district || '—') + '</td>' +
+          '<td>' + (s.code ? '<span class="badge info">' + esc(s.code) + '</span>' : '<span class="muted">—</span>') + '</td>' +
+          '<td><b>' + (Number(s.students)||0) + '</b></td>' +
+          '<td><b>' + (Number(s.teachers)||0) + '</b></td>' +
+          '<td>' + (s.isActive ? '<span class="badge ok">Active</span>' : '<span class="badge warn">Inactive</span>') + '</td>' +
+          '<td class="action-cell"><span class="notes-actions">' +
+            '<button class="btn btn-ghost" data-act="view:' + s.id + '" type="button">View</button>' +
+            '<button class="btn btn-success" data-act="edit:' + s.id + '" type="button">Edit</button>' +
+            (s.isActive
+              ? '<button class="btn btn-ghost" data-act="deactivate:' + s.id + '" type="button">Deactivate</button>'
+              : '<button class="btn btn-orange" data-act="activate:' + s.id + '" type="button">Activate</button>') +
+          '</span></td>' +
+        '</tr>';
+      }).join('');
+
+      root.innerHTML =
+        '<div class="admin-card">' +
+          '<div class="card-head"><h2>All schools</h2><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="badge">' + schools.length + ' schools</span>' + ADD_BTN + '</span></div>' +
+          '<div class="admin-table-wrap clickable-rows"><table class="admin-table">' +
+            '<thead><tr><th>School</th><th>District</th><th>Code</th><th>Students</th><th>Teachers</th><th>Status</th><th>Actions</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table></div>' +
+        '</div>';
+
+      root.querySelectorAll('[data-act]').forEach(function(b){
+        b.addEventListener('click', function(e){
+          e.stopPropagation();
+          var p = b.dataset.act.split(':');
+          var id = Number(p[1]);
+          if(p[0] === 'view') openDetail(id);
+          else if(p[0] === 'edit') openForm(id);
+          else if(p[0] === 'activate') setActive(id, true);
+          else if(p[0] === 'deactivate') setActive(id, false);
+        });
+      });
+      root.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
+        tr.addEventListener('click', function(){ openDetail(Number(tr.dataset.id)); });
+      });
+    }).catch(function(){
+      busy = false;
+      document.getElementById('schoolsRoot').innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('school')+'</div><h3>Could not reach the server</h3><p>Check your connection and try again.</p></div></div>';
+    });
+  }
+
+  // ---------- Actions ----------
+  function setActive(id, active){
+    var s = schools.filter(function(x){ return x.id === id; })[0];
+    NN.api('/api/admin/schools/' + id + '/active', { method:'POST', body: JSON.stringify({ active: active }) }).then(function(r){
+      if(!r.ok){ flash((r.data && r.data.error) || 'Could not update the school.', 'error'); return; }
+      flash((s ? s.name : 'School') + (active ? ' activated — students can now register with it.' : ' deactivated — hidden from registration.'));
+      load();
+      if(currentId === id && document.getElementById('detailModal').classList.contains('show')) openDetail(id);
+    });
+  }
+
+  // ---------- Floating details card ----------
+  function openDetail(id){
+    currentId = id;
+    var s = schools.filter(function(x){ return x.id === id; })[0];
+    if(!s) return;
+    var modal = document.getElementById('detailModal');
+    document.getElementById('dmTitle').textContent = s.name;
+    document.getElementById('dmBody').innerHTML =
+      '<div class="profile-head">' +
+        '<div class="profile-pic">' + esc(initials(s.name)) + '</div>' +
+        '<div><h3 class="pname">' + esc(s.name) + '</h3>' +
+        '<div class="pmeta">' +
+          '<span class="badge info">' + esc(s.district || 'No district') + '</span>' +
+          (s.sector ? '<span class="badge">' + esc(s.sector) + ' Sector</span>' : '') +
+          (s.isActive ? '<span class="badge ok">Active</span>' : '<span class="badge warn">Inactive</span>') +
+          (s.code ? '<span class="badge info">' + esc(s.code) + '</span>' : '') +
+        '</div></div>' +
+      '</div>' +
+      '<div class="info-grid">' +
+        '<div class="info-item"><small>District</small><b>' + esc(s.district || '—') + '</b></div>' +
+        '<div class="info-item"><small>Sector</small><b>' + esc(s.sector || '—') + '</b></div>' +
+        '<div class="info-item"><small>Access code</small><b>' + esc(s.code || '—') + '</b></div>' +
+        '<div class="info-item"><small>Students</small><b>' + (Number(s.students)||0) + '</b></div>' +
+        '<div class="info-item"><small>Teachers</small><b>' + (Number(s.teachers)||0) + '</b></div>' +
+        '<div class="info-item"><small>Added</small><b>' + fmtDate(s.createdAt) + '</b></div>' +
+      '</div>' +
+      (Number(s.students) + Number(s.teachers) > 0
+        ? '<div class="section-title">Note</div><p class="field-hint">Deactivating hides this school from registration — existing accounts keep working.</p>'
+        : '');
+    var actions = document.getElementById('dmActions');
+    actions.hidden = false;
+    document.getElementById('dmEdit').onclick = function(){ closeModal('detailModal'); openForm(id); };
+    var tg = document.getElementById('dmToggle');
+    tg.textContent = s.isActive ? 'Deactivate school' : 'Activate school';
+    tg.className = 'btn ' + (s.isActive ? 'btn-ghost' : 'btn-orange');
+    tg.onclick = function(){ setActive(id, !s.isActive); };
+    modal.classList.add('show');
+  }
+
+  // ---------- Modals ----------
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.addEventListener('click', function(e){
+    var c = e.target.closest('[data-close]');
+    if(c) closeModal(c.dataset.close);
+    if(e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('show');
+  });
+
+  // ---------- Add / edit school ----------
+  var districtsLoaded = false;
+  function loadDistricts(){
+    if(districtsLoaded) return; districtsLoaded = true;
+    NN.api('/api/auth/districts').then(function(r){
+      var list = Array.isArray(r.data) ? r.data : [];
+      var sel = document.getElementById('fmDistrict');
+      list.forEach(function(d){ sel.insertAdjacentHTML('beforeend', '<option value="'+esc(d)+'">'+esc(d)+'</option>'); });
+    });
+  }
+
+  function openForm(id){
+    loadDistricts();
+    var errEl = document.getElementById('fmError');
+    errEl.className = 'alert error';
+    var s = id ? schools.filter(function(x){ return x.id === id; })[0] : null;
+
+    if(s){
+      document.getElementById('fmEditId').value = s.id;
+      document.getElementById('fmTitle').textContent = 'Edit school';
+      document.getElementById('fmSubmit').textContent = 'Save changes';
+      document.getElementById('fmName').value = s.name || '';
+      document.getElementById('fmDistrict').value = s.district || '';
+      var sel = document.getElementById('fmDistrict');
+      if(s.district && sel.value !== s.district){
+        sel.insertAdjacentHTML('afterbegin', '<option value="' + esc(s.district) + '">' + esc(s.district) + '</option>');
+        sel.value = s.district;
+      }
+      document.getElementById('fmSector').value = s.sector || '';
+    } else {
+      document.getElementById('fmEditId').value = '';
+      document.getElementById('schoolForm').reset();
+      document.getElementById('fmTitle').textContent = 'Add a school';
+      document.getElementById('fmSubmit').textContent = 'Add school';
+    }
+    document.getElementById('formModal').classList.add('show');
+    setTimeout(function(){ document.getElementById('fmName').focus(); }, 60);
+  }
+
+  document.getElementById('schoolsRoot').addEventListener('click', function(e){ if (e.target.closest('#addSchoolBtn')) openForm(null); });
+
+  document.getElementById('schoolForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var errEl = document.getElementById('fmError');
+    var btn = document.getElementById('fmSubmit');
+    var editId = document.getElementById('fmEditId').value;
+    var name = document.getElementById('fmName').value.trim();
+    var district = document.getElementById('fmDistrict').value;
+    var sector = document.getElementById('fmSector').value.trim();
+
+    if(!name){ errEl.textContent = 'Please type the school name.'; errEl.className = 'alert error show'; return; }
+    if(!district){ errEl.textContent = 'Please choose the district.'; errEl.className = 'alert error show'; return; }
+
+    btn.disabled = true;
+    var url = editId ? '/api/admin/schools/' + editId : '/api/admin/schools';
+    var method = editId ? 'PATCH' : 'POST';
+    NN.api(url, { method: method, body: JSON.stringify({ name: name, district: district, sector: sector }) }).then(function(r){
+      btn.disabled = false;
+      if(!r.ok && r.status !== 201){ errEl.textContent = (r.data && r.data.error) || 'Could not save the school.'; errEl.className = 'alert error show'; return; }
+      closeModal('formModal');
+      flash(editId ? 'School updated.' : 'School added to the catalogue.');
+      load();
+    }).catch(function(){ btn.disabled = false; errEl.textContent = 'Could not reach the server.'; errEl.className = 'alert error show'; });
+  });
+
+  // ---------- Search (debounced) ----------
+  var searchT;
+  document.getElementById('schoolSearch').addEventListener('input', function(){
+    clearTimeout(searchT);
+    searchT = setTimeout(load, 300);
+  });
+
+  // ---------- Mobile sidebar toggle ----------
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  load();
+  </script>
+</body>
+</html>

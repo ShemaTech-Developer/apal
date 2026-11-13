@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Profile — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css">
+</head>
+<body data-view="s-profile">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head"><div><h1>My Profile</h1><p class="welcome-sub">Your APALINK student account.</p></div></div>
+      <section class="panel"><div class="profile-grid">
+        <div class="kv"><b>Full name</b><span id="pName">—</span></div>
+        <div class="kv"><b>Username</b><span id="pUser">—</span></div>
+        <div class="kv"><b>Email</b><span id="pEmail">—</span></div>
+        <div class="kv"><b>Role</b><span id="pRole">—</span></div>
+        <div class="kv"><b>Section</b><span id="pSection">—</span></div>
+        <div class="kv"><b>Academic level</b><span id="pLevel">—</span></div>
+        <div class="kv"><b>Class</b><span id="pClass">—</span></div>
+        <div class="kv"><b>School</b><span id="pSchool">—</span></div>
+        <div class="kv"><b>District</b><span id="pDistrict">—</span></div>
+        <div class="kv"><b>Joined</b><span id="pJoined">—</span></div>
+      </div></section>
+
+      <section class="panel"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div><h2 style="margin:0"><span data-icon="clock"></span> Activity history</h2><p class="muted" style="margin:4px 0 0">Tasks and actions you did in APALINK. Remove anything you no longer want to see.</p></div>
+        <button class="btn btn-ghost" id="clearActivityBtn" type="button">Clear my history</button>
+      </div>
+      <ul class="plain-list" id="activityList" style="margin-top:14px"><li class="muted">Loading…</li></ul></section>
+
+    </main>
+  </div>
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+</body>
+</html>

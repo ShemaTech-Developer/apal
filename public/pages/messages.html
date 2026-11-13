@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Messages — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/auth.css"><link rel="stylesheet" href="../css/dashboard.css"><link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body data-view="messages">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../index.html"><img src="../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../index.html" style="margin-bottom:12px"><img src="../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head">
+        <div><h1><span data-icon="message-square"></span> Messages</h1><p class="welcome-sub">Find a person, open a chat, and keep the conversation going.</p></div>
+      </div>
+
+      <div class="msg-layout">
+        <section class="msg-left" aria-label="People and conversations">
+          <div class="find-block">
+            <div class="block-head"><h2>Find people</h2><span class="block-sub">Students &amp; teachers</span></div>
+            <div class="people-search">
+              <span aria-hidden="true"><span data-icon="search"></span></span>
+              <input id="dirSearch" type="search" placeholder="Search name or username…" autocomplete="off" aria-label="Search people">
+            </div>
+            <div id="directory" class="people-list" aria-live="polite"></div>
+          </div>
+          <div class="chats-block">
+            <div class="block-head"><h2>Your chats</h2><span class="badge" id="chatCount">0</span></div>
+            <div id="convList" class="conv-list" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="msg-main" aria-label="Conversation">
+          <div class="msg-head">
+            <div class="chat-person">
+              <span class="avatar-wrap">
+                <span class="avatar" id="chatAvatar"><span data-icon="message-square"></span></span>
+                <span class="presence-dot" id="chatDot" hidden></span>
+              </span>
+              <span class="chat-id">
+                <b id="chatTitle">Select a conversation</b>
+                <small id="chatStatus">Pick a person from Find people</small>
+              </span>
+            </div>
+            <span class="msg-head-actions">
+              <button class="btn btn-ghost" id="blockBtn" type="button" style="display:none">Block</button>
+              <button class="btn btn-ghost" id="backBtn" type="button">← Back</button>
+            </span>
+          </div>
+          <div class="msg-body" id="msgBody">
+            <div class="empty msg-empty"><span class="big" data-icon="message-square" data-icon-size="26"></span><h3>No chat open yet</h3><p>Search for a classmate or teacher above, then tap their name to start messaging.</p></div>
+          </div>
+          <form class="msg-input" id="sendForm">
+            <div class="composer">
+              <div class="attach-preview" id="attachPreview" hidden></div>
+              <div class="composer-row">
+                <button class="btn btn-ghost attach-btn" id="attachBtn" type="button" title="Attach a file (up to 5, 20 MB each)" aria-label="Attach a file"><span data-icon="paperclip"></span></button>
+                <input id="fileInput" type="file" multiple hidden accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.csv,.json,.zip,.png,.jpg,.jpeg,.gif,.webp,.mp3,.mp4">
+                <textarea id="msgInput" placeholder="Write a message…" maxlength="4000" rows="1" aria-label="Message"></textarea>
+                <button class="btn btn-primary" id="sendBtn" type="submit">Send</button>
+              </div>
+              <p class="attach-hint" id="attachHint"><span data-icon="paperclip"></span> Attach up to 5 files · images, PDF, Word, Excel, slides, ZIP · 20 MB each</p>
+            </div>
+          </form>
+        </section>
+      </div>
+
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/messages.js"></script>
+</body>
+</html>

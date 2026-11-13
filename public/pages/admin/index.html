@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Console — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <button class="anav active" data-section="dashboard"><span data-icon="layout-dashboard"></span>Dashboard</button>
+        <button class="anav" data-section="users"><span data-icon="users"></span>Users</button>
+        <button class="anav" data-section="teachers"><span data-icon="user-plus"></span>Assign Teachers</button>
+        <a href="notes.html" style="text-decoration: none;"><button class="anav" data-section="notes"><span data-icon="file-text"></span>Notes &amp; files</button></a>
+        <button class="anav" data-section="announcements"><span data-icon="megaphone"></span>Announcements</button>
+        <button class="anav" data-section="messages.html"><span data-icon="message-square"></span>Messages</button>
+        <button class="anav" data-section="reports"><span data-icon="shield"></span>Reports <span class="anav-badge" id="navReportBadge" hidden></span></button>
+        <button class="anav" data-section="schools"><span data-icon="school"></span>Schools</button>
+        <button class="anav" data-section="sub-admins"><span data-icon="shield"></span>Sub-admins</button>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title"><h1 id="pageTitle">Dashboard</h1><p id="pageSub">Every activity on APALINK, in one place.</p></div>
+        <div class="admin-search" id="adminSearchWrap">
+          <span data-icon="search"></span>
+          <input id="adminSearch" type="search" autocomplete="off" placeholder="Search any note or user…" aria-label="Search">
+          <div class="search-results" id="adminSearchResults" hidden></div>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+      <div id="adminAlert" class="alert" role="status"></div>
+      <div id="adminView" class="admin-view"></div>
+    </main>
+  </div>
+
+  <!-- User control modal -->
+  <div class="modal" id="userModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="umTitle">User</h2><button class="btn btn-ghost" data-close="userModal" type="button"><span data-icon="x"></span></button></div>
+      <div class="profile-grid" id="umStats"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="umMessage" type="button"><span data-icon="message-square"></span> Message</button>
+        <button class="btn btn-ghost" id="umActive" type="button">Activate / deactivate</button>
+        <button class="btn btn-ghost" id="umReset" type="button">Reset password</button>
+        <button class="btn btn-danger" id="umDelete" type="button">Delete user</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Teachers modal (create / edit) -->
+  <div class="modal" id="teacherModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="tmTitle">Assign a teacher</h2><button class="btn btn-ghost" data-close="teacherModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="tmError" class="alert error" role="alert"></div>
+      <form id="teacherForm" novalidate>
+        <div class="field"><label for="tmName">Full name *</label><input id="tmName" name="fullName" type="text" required placeholder="e.g. UWASE Angel" autocomplete="off"></div>
+        <div class="row2">
+          <div class="field"><label for="tmUsername">Username *</label><input id="tmUsername" name="username" type="text" required placeholder="e.g. uwaseangel" autocomplete="off"></div>
+          <div class="field"><label for="tmSubject">Subject *</label><input id="tmSubject" name="subject" type="text" required placeholder="e.g. Mathematics" autocomplete="off"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="tmTeacherCode">TC code</label><input id="tmTeacherCode" name="teacherCode" type="text" placeholder="e.g. TC014 (auto if blank)" autocomplete="off"></div>
+          <div class="field"><label for="tmPhone">Phone (+250) *</label>
+            <div class="password-wrap"><span class="phone-prefix">+250</span>
+              <input id="tmPhone" name="phone" type="tel" required inputmode="numeric" pattern="07[0-9]{8}" title="Type the number starting with 07, e.g. 0788123456" placeholder="0788 123 456" autocomplete="tel-national">
+            </div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="tmDistrict">School district</label><select id="tmDistrict" name="district"><option value="">Choose district (optional)…</option></select></div>
+          <div class="field"><label for="tmSchoolName">School name *</label><input id="tmSchoolName" name="schoolName" type="text" required minlength="3" maxlength="120" placeholder="e.g. APADE High School" autocomplete="off"></div>
+        </div>
+        <div class="field"><label for="tmPassword" id="tmPasswordLabel">Temporary password *</label>
+          <div class="password-wrap">
+            <input id="tmPassword" name="tempPassword" type="password" autocomplete="new-password" placeholder="Min. 6 characters">
+            <button class="toggle" type="button" data-toggle-target="tmPassword">Show</button>
+          </div>
+          <p class="field-hint" id="tmPasswordHint">The teacher signs in with this password and should change it later. It is stored hashed.</p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" data-close="teacherModal">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="tmSubmit">Create teacher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin <-> user message modal -->
+  <div class="modal" id="msgModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="mmTitle">Message</h2><button class="btn btn-ghost" data-close="msgModal" type="button"><span data-icon="x"></span></button></div>
+      <div class="admin-chat" id="mmBody"><div class="empty"><h3>No messages yet</h3><p>Send the first message.</p></div></div>
+      <form class="msg-input" id="mmForm">
+        <textarea id="mmInput" placeholder="Write a message to this user…" maxlength="4000"></textarea>
+        <button class="btn btn-primary" type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script src="../../js/admin.js"></script>
+</body>
+</html>

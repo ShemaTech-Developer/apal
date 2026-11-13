@@ -1,0 +1,17 @@
+/* APALINK — responsive */
+@media (max-width: 920px) {
+  .auth-split { grid-template-columns: 1fr; }
+  .photo-panel { min-height: 260px; }
+  .photo-copy h2 { font-size: 1.35rem; }
+  .role-grid { grid-template-columns: 1fr; }
+  .how-it-works { grid-template-columns: 1fr; }
+  .welcome-hero h1 { font-size: 1.8rem; }
+}
+@media (max-width: 560px) {
+  .topbar { padding: 12px 16px; }
+  .topbar .tag { display: none; }
+  .row2 { grid-template-columns: 1fr; }
+  .form-panel { padding: 26px 18px; }
+  .welcome-hero { padding: 30px 18px 10px; }
+  .btn { padding: 13px 16px; }
+}

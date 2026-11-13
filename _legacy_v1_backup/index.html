@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#FFD34E"><meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: blob:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; frame-src data: blob:; connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://api.openai.com https://*.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none'">
+<title>APALINK — School Notes, Shared</title><meta name="description" content="APALINK: teacher-published notes by section and level. Students search, preview and download.">
+<link rel="manifest" href="manifest.json"><link rel="icon" type="image/svg+xml" href="apalink-icon.svg"><link rel="icon" type="image/png" sizes="192x192" href="apalink-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css"></head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- AUTH SHELL -->
+<div id="authShell">
+  <section id="page-welcome" class="auth-page welcome-bg">
+    <div class="auth-grid">
+      <div class="brand-panel">
+        <img src="apalink-icon.svg" class="brand-logo" alt="APALINK logo">
+        <h1>APA<span>LINK</span></h1>
+        <p class="brand-tag">Notes from your teachers.<br>For your section. For your level.</p>
+        <div class="brand-feats"><span>📚 11 Sections</span><span>🎓 Level 3–Senior 6</span><span>⬇️ 50 MB downloads</span><span>🤖 APALINK AI</span></div>
+        <p class="library-art" aria-hidden="true">📚 🏫 ✏️ 🎓 📖</p>
+      </div>
+      <div class="form-panel">
+        <p class="eyebrow">Welcome to APALINK</p><h2>Are you a Teacher or a Student?</h2><p class="muted">Choose one to continue. Students create a student account. Teachers need the school password first.</p>
+        <div class="choice-grid">
+          <button class="choice student" id="chooseStudent"><span class="choice-icon">🎓</span><b>Student</b><small>Full name, username, section, class, level & password</small><em>Create student account →</em></button>
+          <button class="choice teacher" id="chooseTeacher"><span class="choice-icon">👩‍🏫</span><b>Teacher</b><small>Enter school password, then create teacher account</small><em>Enter school password →</em></button>
+        </div>
+        <p class="center muted">Already registered? <button class="link" id="goLogin">Login →</button></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-login" class="auth-page student-bg" hidden>
+    <div class="auth-grid"><div class="brand-panel"><img src="apalink-icon.svg" class="brand-logo"><h1>APA<span>LINK</span></h1><p class="brand-tag">Welcome back.<br>Your notes are waiting.</p><p class="library-art">🎓 📚 ✏️</p></div>
+    <div class="form-panel"><p class="eyebrow">Login</p><h2>Welcome back 👋</h2>
+      <form id="loginForm" class="form"><label>Username<input name="username" required placeholder="e.g. lucky123"></label><label>Password<input name="password" type="password" required placeholder="Your password"></label><p class="error" id="loginError" hidden></p><button class="btn primary full">Login →</button></form>
+      <p class="center muted">New here? <button class="link" id="goRegister">Create account →</button></p>
+    </div></div>
+  </section>
+
+  <section id="page-register" class="auth-page student-bg" hidden>
+    <div class="auth-grid"><div class="brand-panel"><img src="apalink-icon.svg" class="brand-logo"><h1>APA<span>LINK</span></h1><p class="brand-tag">Students join here.<br>Learn from your teachers.</p><p class="library-art">🎓📚🏫✏️📖</p></div>
+    <div class="form-panel"><p class="eyebrow">Student Registration</p><h2>Create student account ✨</h2>
+      <form id="createForm" class="form">
+        <label>Full name<input name="displayName" required placeholder="e.g. Lucky Shema"></label>
+        <label>Username<input name="username" required placeholder="3–24 letters, numbers, _"></label>
+        <label>Section / Department<select name="department" required><option value="">Choose your section…</option><option>Computer Systems and Architecture</option><option>Software Development</option><option>Networking and Internet Technologies</option><option>Electronics and Telecommunication</option><option>Professional Accounting</option><option>Multimedia Production</option><option>Tourism and Hospitality</option><option>Food and Beverage Operations</option><option>Building and Construction Services</option><option>Mathematics and Sciences Stream One</option><option>Mathematics and Sciences Stream Two</option></select></label>
+        <div class="row2"><label>Class<input name="className" required placeholder="e.g. A, B"></label><label>Level<select name="level" required><option value="">Level…</option><option>Level 3</option><option>Level 4</option><option>Level 5</option><option>Senior 4</option><option>Senior 5</option><option>Senior 6</option></select></label></div>
+        <label>Password<input name="password" type="password" required placeholder="At least 6 characters"></label>
+        <label>Confirm password<input name="confirm" type="password" required placeholder="Repeat password"></label>
+        <p class="error" id="createError" hidden></p><button class="btn primary full">Create Account →</button>
+      </form>
+      <p class="center muted">Already registered? <button class="link" id="backLogin">← Login</button></p>
+    </div></div>
+  </section>
+
+  <section id="page-teacherGate" class="auth-page teacher-bg" hidden>
+    <div class="auth-grid"><div class="brand-panel teacher-brand"><img src="apalink-icon.svg" class="brand-logo"><h1>APA<span>LINK</span></h1><p class="brand-tag">Teachers publish.<br>Students learn.</p><p class="library-art">👩‍🏫 📚 🏫 ✏️</p></div>
+    <div class="form-panel"><p class="eyebrow">Teacher Access</p><h2>Enter school password 🔑</h2><p class="muted">Only teachers can publish notes. Enter the school password to continue.</p>
+      <form id="gateForm" class="form"><label>School Password<input name="schoolPass" type="password" required placeholder="School password" autocomplete="off"></label><p class="error" id="gateError" hidden></p><button class="btn primary full">Verify →</button></form>
+      <p class="center muted">Student? <button class="link" id="gateBack">← Back to Student</button></p>
+    </div></div>
+  </section>
+
+  <section id="page-teacherReg" class="auth-page teacher-bg" hidden>
+    <div class="auth-grid"><div class="brand-panel teacher-brand"><img src="apalink-icon.svg" class="brand-logo"><h1>APA<span>LINK</span></h1><p class="brand-tag">Welcome, Teacher.<br>Publish for your students.</p><p class="library-art">👩‍🏫🏫📚</p></div>
+    <div class="form-panel"><p class="eyebrow">Teacher Registration</p><h2>Create teacher account</h2><p class="muted">No department/trades to choose — you can publish to any section & level.</p>
+      <form id="teacherForm" class="form">
+        <label>Full name<input name="fullName" required placeholder="e.g. Uwase Angel"></label>
+        <label>Username<input name="username" required placeholder="3–24 letters, numbers, _"></label>
+        <label>Teacher ID / Registration No.<input name="teacherId" required placeholder="e.g. TCH-2026-001"></label>
+        <label>School<input name="school" placeholder="APADE School"></label>
+        <label>Subjects you teach (free text)<input name="subjects" placeholder="e.g. Networking, Programming"></label>
+        <label>Password<input name="password" type="password" required placeholder="At least 6 characters"></label>
+        <label>Confirm password<input name="confirm" type="password" required placeholder="Repeat"></label>
+        <label class="check"><input type="checkbox" required> I confirm I am a teacher at this school.</label>
+        <p class="error" id="teacherError" hidden></p><button class="btn primary full">Create Teacher Account →</button>
+      </form>
+      <p class="center muted">Student? <button class="link" id="teacherBack">← Back</button></p>
+    </div></div>
+  </section>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" hidden>
+  <aside class="sidebar" id="sidebar">
+    <div class="side-logo"><img src="apalink-icon.svg"><b>APA<span>LINK</span></b></div>
+    <nav>
+      <button data-nav="home">🏠 Home</button><button data-nav="notes">📚 Notes</button><button data-nav="dashboard">📊 Dashboard</button><button data-nav="upload">📤 Publish</button><button data-nav="favorites">⭐ Favorites</button><button data-nav="about">ℹ️ About</button><button data-nav="help">❓ Help</button><button data-nav="admin">🛡️ Admin</button>
+    </nav>
+    <div class="side-user"><div class="avatar" id="avatarLetter">?</div><div><b id="navUsername"></b><small id="navRole"></small></div></div>
+    <button class="btn ghost full" id="logoutBtn">Logout</button>
+  </aside>
+  <div class="main-wrap">
+    <header class="topbar"><button class="burger" id="burger">☰</button><div class="search-top">🔍 <input id="searchInput" placeholder="Search notes, sections, authors…"></div><span class="top-badge" id="topBadge"></span></header>
+    <main id="main">
+      <section class="page" data-page="home">
+        <div class="hero"><p class="eyebrow">School Notes Library</p><h1>Notes from your teachers.<br><span>For your section. For your level.</span></h1><p class="muted">Search once, learn faster. Preview before you download — up to 50 MB, shared with everyone.</p><div class="hero-actions"><button class="btn primary" data-go="notes">Browse Notes →</button><button class="btn ghost" data-go="dashboard">View Dashboard</button></div><div class="hero-stats" id="homeStats"></div></div>
+      </section>
+      <section class="page" data-page="notes" hidden>
+        <div class="page-head"><div><p class="eyebrow">Library</p><h2>Notes &amp; Documents</h2></div><p id="resultText" class="muted"></p></div>
+        <div id="deptBanner" class="banner" hidden></div><div id="sharedStatus" class="banner">🌐 Loading shared library…</div>
+        <div class="toolbar"><div class="chips" id="filters"></div>
+          <div class="toolbar-row"><label>Sort <select id="sortSelect"><option value="newest">Newest</option><option value="popular">Most downloaded</option><option value="az">A–Z</option></select></label><label>File type <select id="typeSelect"><option value="all">All</option><option value="pdf">PDF</option><option value="txt">Text</option><option value="doc">Word</option><option value="ppt">PowerPoint</option><option value="other">Other</option></select></label><button class="btn ghost small" id="clearBtn">Clear</button></div>
+        </div>
+        <div id="notesGrid" class="grid"></div><div id="emptyState" class="empty" hidden><span>🍃</span><h3>No notes found</h3><p>Try another search, or ask your teacher to publish for your section & level.</p></div>
+      </section>
+      <section class="page" data-page="dashboard" hidden>
+        <div class="page-head"><div><p class="eyebrow">Dashboard</p><h2>Library at a glance</h2></div></div>
+        <div class="stats"><article class="stat"><span>📄</span><strong id="stNotes">0</strong><p>Notes</p></article><article class="stat"><span>📚</span><strong id="stSubjects">0</strong><p>Sections</p></article><article class="stat"><span>⬇️</span><strong id="stDownloads">0</strong><p>Downloads</p></article><article class="stat"><span>👥</span><strong id="stUsers">0</strong><p>Users</p></article></div>
+        <div class="grid2"><article class="panel"><h3>By section</h3><div id="deptChart"></div></article><article class="panel"><h3>Top downloaded</h3><ol id="topList"></ol></article></div>
+      </section>
+      <section class="page" data-page="upload" hidden>
+        <div class="page-head"><div><p class="eyebrow">Publish Area · Teachers Only</p><h2>Publish a Note</h2></div><p id="publishRoleText" class="muted"></p></div>
+        <div id="studentLock" class="warn" hidden>🔒 <b>Teachers only can publish.</b> Students can search, preview and download notes for their section & level.</div>
+        <form id="uploadForm" class="form-card">
+          <label>Title<input name="title" required placeholder="e.g. Networking — OSI Model"></label>
+          <div class="row2"><label>Section<select name="subject" required></select></label><label>Level<select name="level" required><option>Level 3</option><option>Level 4</option><option>Level 5</option><option>Senior 4</option><option>Senior 5</option><option>Senior 6</option></select></label></div>
+          <div class="row2"><label>Your name<input name="author" required placeholder="Teacher name"></label><label>Class (optional)<input name="levelClass" placeholder="e.g. A"></label></div>
+          <label>Tags (comma separated)<input name="tags" placeholder="exam, revision"></label>
+          <label>Description<textarea name="description" rows="3" maxlength="600"></textarea></label>
+          <label class="drop" id="dropZone">📁 Drop file here or click<input name="file" id="fileInput" type="file" required accept=".txt,.md,.pdf,.doc,.docx,.ppt,.pptx,.html,.csv,.json"><small id="fileInfo">PDF, DOCX, PPTX, TXT, MD · Max 50 MB</small></label>
+          <label class="check"><input type="checkbox" required> I confirm I have the right to share this and it is safe for students.</label>
+          <button class="btn primary">Publish Note →</button>
+        </form>
+        <article class="panel" id="teacherMine" hidden><h3>My published notes</h3><div id="myNotesList"></div></article>
+      </section>
+      <section class="page" data-page="favorites" hidden><div class="page-head"><div><p class="eyebrow">Your Space</p><h2>⭐ Favorites</h2></div></div><div id="favGrid" class="grid"></div><div id="favEmpty" class="empty">⭐<h3>No favorites yet</h3><p>Star a note to save it here.</p></div></section>
+      <section class="page" data-page="about" hidden><div class="page-head"><div><p class="eyebrow">About APALINK</p><h2>Built for schools 🎓</h2></div><p class="muted">APALINK is a modern school notes library. Teachers publish by section & level. Students learn from their teachers only — searchable, downloadable, offline-capable, free for schools.</p></section>
+      <section class="page" data-page="help" hidden><div class="page-head"><div><p class="eyebrow">Help</p><h2>How APALINK works</h2></div><details open><summary>How do I find notes for me?</summary><p>Your section & level are set at registration. The Library only shows notes matching both — search inside them.</p></details><details><summary>Who can publish?</summary><p>Only teachers (school password APADE@2026 at registration). Students cannot publish.</p></details><details><summary>How do I download?</summary><p>Tap Preview, then Download. Files up to 50 MB, shared via cloud.</p></details></section>
+      <section class="page" data-page="admin" hidden><div class="page-head"><div><p class="eyebrow">Admin</p><h2>🛡️ Admin Control</h2></div></div><div id="adminDenied" class="warn">🔒 Admin only. Make yourself admin in Supabase: <code>update public.apalink_users set role='admin' where username='YOUR_USERNAME';</code></div><div id="adminBody" hidden><div class="stats"><article class="stat"><strong id="aUsers">0</strong><p>Users</p></article><article class="stat"><strong id="aNotes">0</strong><p>Files</p></article></div><div id="adminUsers"></div><div id="adminFiles"></div></div></section>
+      <section class="page" data-page="account" hidden><div class="page-head"><div><p class="eyebrow">My Account</p><h2>Your Account 👤</h2></div></div><div class="account-card"><div class="avatar xl" id="accLetter">?</div><h2 id="accName"></h2><p id="accRole" class="muted"></p></div><button class="btn primary" data-go="home">Go to Library →</button> <button class="btn ghost" id="logout2">Logout</button></section>
+    </main>
+  </div>
+</div>
+
+<button id="aiBtn" class="ai-fab"><img src="apalink-icon.svg" alt=""> Ask APALINK AI</button>
+<div id="aiPanel" class="ai-panel" hidden>
+  <div class="ai-head"><b><img src="apalink-icon.svg" style="width:26px;vertical-align:middle"> APALINK AI</b><button class="close" id="aiClose">✕</button></div>
+  <div class="ai-quick"><button data-ai="summarize">📝 Summarize</button><button data-ai="explain">💡 Explain</button><button data-ai="quiz">🧠 Quiz</button><button data-ai="math">🔢 Maths</button></div>
+  <select id="aiNoteSelect" style="margin:8px 12px"></select>
+  <div id="aiMessages" class="ai-messages"></div>
+  <form id="aiForm" class="ai-form"><input id="aiInput" placeholder="Ask anything…"><button>➤</button></form>
+</div>
+
+<div id="previewModal" class="modal" hidden><div class="modal-card"><div class="modal-head"><h3 id="previewTitle"></h3><button class="close" data-close>✕</button></div><div id="previewBody"></div><div class="modal-actions"><button class="btn primary" id="previewAI">🤖 Summarize</button><button class="btn primary" id="previewDownload">Download ↓</button><button class="btn ghost" data-close>Close</button></div></div></div>
+<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script src="app.js"></script>
+</body></html>

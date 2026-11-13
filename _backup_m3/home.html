@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>APALINK — Redirecting…</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo/favicon.svg">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <main class="wrap center" style="max-width:520px">
+    <p class="eyebrow">APALINK</p>
+    <h1 id="msg">Opening your dashboard…</h1>
+    <p class="muted" id="sub"></p>
+  </main>
+  <script src="../js/main.js"></script>
+  <script>
+    NN.api('/api/auth/me').then(function (r) {
+      if (!r.ok) { document.getElementById('msg').textContent = 'Please sign in first.'; setTimeout(function(){ window.location.href = 'student-login.html'; }, 800); return; }
+      var u = r.data.user;
+      window.location.href = u.role === 'student' ? 'student/overview.html' : 'teacher/overview.html';
+    });
+  </script>
+</body>
+</html>

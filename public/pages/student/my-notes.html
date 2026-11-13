@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Notes — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css">
+</head>
+<body data-view="s-notes">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head"><div><h1>My Notes</h1><p class="welcome-sub">Notes published by your teachers for your section &amp; level. <span id="notesCount" class="muted"></span></p></div>
+        <label class="searchbar"><span data-icon="search"></span> <input id="q" type="search" placeholder="Search title, subject, teacher…"></label></div>
+      <div class="toolbar">
+        <select id="subject" aria-label="Subject"><option value="">All subjects</option></select>
+        <select id="ftype" aria-label="File type"><option value="all">All files</option><option value="pdf">PDF</option><option value="document">Documents</option><option value="text">Text</option><option value="image">Images</option><option value="other">Other</option></select>
+        <select id="sort" aria-label="Sort"><option value="newest">Newest</option><option value="popular">Most downloaded</option><option value="az">A–Z</option></select>
+      </div>
+      <div class="notes-grid" id="notesGrid"></div>
+
+    </main>
+  </div>
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+</body>
+</html>

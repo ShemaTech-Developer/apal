@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notifications — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/auth.css"><link rel="stylesheet" href="../css/dashboard.css"><link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body data-view="notifications">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../index.html"><img src="../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../index.html" style="margin-bottom:12px"><img src="../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head"><div><h1><span data-icon="bell"></span> Notifications</h1><p class="welcome-sub"><span id="unreadCount"></span></p></div>
+        <button class="btn btn-ghost" id="markAll">Mark all read</button></div>
+      <ul class="notif-list" id="notifList"></ul>
+
+    </main>
+  </div>
+  <script src="../js/main.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    function load(){ NN.api('/api/notifications').then(function(r){ if(!r.ok) return;
+      document.getElementById('unreadCount').textContent = r.data.unread ? r.data.unread + ' unread' : 'All caught up';
+      var box = document.getElementById('notifList');
+      box.innerHTML = r.data.notifications.length ? r.data.notifications.map(function(n){
+        return '<li><span><b>' + n.title + '</b>' + (n.isRead ? '' : ' <span class="unread-dot">!</span>') + '<br><small class="muted">' + n.body + ' · ' + String(n.createdAt).slice(0,16) + '</small></span>' +
+        (n.link ? '<a class="btn btn-ghost" href="' + n.link + '">Open</a>' : '') + '</li>';
+      }).join('') : '<li class="muted">No notifications yet.</li>';
+    }); }
+    load();
+    document.getElementById('markAll').addEventListener('click', function(){ NN.api('/api/notifications/read-all', {method:'POST'}).then(load); });
+  });
+  </script>
+</body>
+</html>

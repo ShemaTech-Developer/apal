@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Announcements — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav active" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Announcements</h1>
+          <p>Publish notices to all students and teachers — pin, edit or take them down.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <!-- Toolbar: search + New Announcement -->
+      <div class="admin-toolbar">
+        <div class="admin-search">
+          <span data-icon="search"></span>
+          <input id="annSearch" type="search" autocomplete="off" placeholder="Search title, message, category…" aria-label="Search announcements">
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="notes-summary" id="annSummary"></div>
+
+      <!-- Announcements table (loaded from the server) -->
+      <div id="annRoot">
+        <div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading announcements from the server…</div></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Floating details card (click a row) -->
+  <div class="modal" id="detailModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="dmTitle">Announcement</h2><button class="btn btn-ghost" data-close="detailModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="dmBody"><div class="notes-loading"><span class="spinner"></span> Loading…</div></div>
+      <div class="modal-actions" id="dmActions" hidden>
+        <button class="btn btn-success" id="dmEdit" type="button">Edit</button>
+        <button class="btn btn-orange" id="dmPublish" type="button">Publish</button>
+        <button class="btn btn-ghost" id="dmPin" type="button">Pin</button>
+        <button class="btn btn-danger" id="dmDelete" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create / edit announcement modal -->
+  <div class="modal" id="formModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="fmTitle">New announcement</h2><button class="btn btn-ghost" data-close="formModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="fmError" class="alert error" role="alert"></div>
+      <form id="annForm" novalidate>
+        <input type="hidden" id="fmEditId">
+        <div class="field">
+          <label for="fmTitleInput">Title *</label>
+          <input id="fmTitleInput" type="text" maxlength="180" required placeholder="e.g. Term 2 exams start Monday" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="fmBody">Message *</label>
+          <textarea id="fmBody" rows="6" maxlength="5000" required placeholder="Write the full announcement students and teachers will read…"></textarea>
+          <div class="char-count" id="fmCount">0 / 5000</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="fmCategory">Category</label>
+            <select id="fmCategory">
+              <option value="general">General</option>
+              <option value="academic">Academic</option>
+              <option value="event">Event</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fmAudience">Who sees it</label>
+            <select id="fmAudience">
+              <option value="all">Everyone (students + teachers)</option>
+              <option value="students">Students only</option>
+              <option value="teachers">Teachers only</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="fmSchool">School name</label>
+          <input id="fmSchool" type="text" maxlength="120" placeholder="e.g. APADE High School" autocomplete="off">
+          <p class="field-hint">Type a school so only its users see the notice — or leave it blank to reach every school.</p>
+        </div>
+        <label class="check"><input type="checkbox" id="fmPinned"> Pin it to the top of everyone's feed</label>
+        <label class="check"><input type="checkbox" id="fmPublished" checked> Publish immediately (untick to save as a draft)</label>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" data-close="formModal">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="fmSubmit">Publish announcement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtDate(s){ return s ? String(s).slice(0,10) : '—'; }
+  function fmtDateTime(s){ return s ? String(s).replace('T',' ').slice(0,16) : '—'; }
+  function timeAgo(s){
+    if(!s) return '';
+    var d = (String(s).replace(' ','T') + 'Z');
+    var diff = (Date.now() - new Date(d).getTime()) / 1000;
+    if(isNaN(diff)) return String(s).slice(0,10);
+    if(diff < 60) return 'just now';
+    if(diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if(diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    if(diff < 2592000) return Math.floor(diff/86400) + 'd ago';
+    return String(s).slice(0,10);
+  }
+
+  var CATS = {
+    general:  { label: 'General',  badge: 'info',  emoji: '📢' },
+    academic: { label: 'Academic', badge: 'ok',    emoji: '🎓' },
+    event:    { label: 'Event',    badge: 'warn',  emoji: '📅' },
+    urgent:   { label: 'Urgent',   badge: 'danger',emoji: '⚠️' },
+  };
+  var AUDS = {
+    all:      { label: 'Everyone',    badge: 'info' },
+    students: { label: 'Students',    badge: 'ok' },
+    teachers: { label: 'Teachers',    badge: 'warn' },
+  };
+  function cat(c){ return CATS[c] || CATS.general; }
+  function aud(a){ return AUDS[a] || AUDS.all; }
+
+  var pageAlert = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    pageAlert.textContent = msg || '';
+    pageAlert.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ pageAlert.className = 'alert'; }, 4000);
+  }
+
+  var anns = [];
+  var currentId = null;
+  var busy = false;
+
+  var ADD_BTN = '<button class="btn btn-primary" id="newAnnBtn" type="button">' + NN.icon('megaphone') + ' New Announcement</button>';
+
+  function load(){
+    if(busy) return;
+    busy = true;
+    var q = document.getElementById('annSearch').value.trim();
+    var root = document.getElementById('annRoot');
+    root.innerHTML = '<div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading announcements from the server…</div></div>';
+
+    NN.api('/api/admin/announcements?q=' + encodeURIComponent(q)).then(function(r){
+      busy = false;
+      if(!r.ok){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('shield')+'</div><h3>Administrator login required</h3><p>Sign in as administrator to manage announcements.</p></div></div>';
+        document.getElementById('annSummary').innerHTML = '';
+        return;
+      }
+      anns = Array.isArray(r.data) ? r.data : (r.data.announcements || []);
+
+      // Summary
+      var published = anns.filter(function(a){ return a.isPublished; }).length;
+      var pinned = anns.filter(function(a){ return a.isPinned; }).length;
+      var students = anns.filter(function(a){ return a.audience === 'students'; }).length;
+      document.getElementById('annSummary').innerHTML =
+        '<div class="admin-stat"><div class="ic">'+NN.icon('megaphone')+'</div><div><div class="n">'+anns.length+'</div><div class="l">Total announcements</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('user-check')+'</div><div><div class="n">'+published+'</div><div class="l">Published</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('file-text')+'</div><div><div class="n">'+(anns.length - published)+'</div><div class="l">Drafts</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('shield')+'</div><div><div class="n">'+pinned+'</div><div class="l">Pinned to top</div></div></div>';
+
+      if(!anns.length){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('megaphone')+'</div><h3>'+(q ? 'No announcements match your search' : 'No announcements yet')+'</h3><p>'+(q ? 'Try a different title or keyword.' : 'Use New Announcement to publish the first notice.')+'</p><div style="margin-top:12px">' + ADD_BTN + '</div></div></div>';
+        return;
+      }
+
+      var rows = anns.map(function(a){
+        var c = cat(a.category), au = aud(a.audience);
+        return '<tr data-id="' + a.id + '">' +
+          '<td class="ann-title-cell"><b>' + (a.isPinned ? '<span class="pin-flag">📌 </span>' : '') + esc(a.title) + '</b><small>' + esc(a.body ? a.body.replace(/\s+/g,' ').slice(0,90) : '') + '</small></td>' +
+          '<td><span class="badge ' + c.badge + '">' + c.emoji + ' ' + c.label + '</span></td>' +
+          '<td><span class="badge ' + au.badge + '">' + au.label + '</span></td>' +
+          '<td>' + (a.schoolName ? '<b>' + esc(a.schoolName) + '</b>' + (a.district ? '<br><small class="muted">' + esc(a.district) + '</small>' : '') : '<span class="muted">All schools</span>') + '</td>' +
+          '<td>' + (a.isPublished ? '<span class="badge ok">Published</span>' : '<span class="badge warn">Draft</span>') + '</td>' +
+          '<td class="action-cell"><span class="notes-actions">' +
+            '<button class="btn btn-ghost" data-act="view:' + a.id + '" type="button">View</button>' +
+            '<button class="btn btn-success" data-act="edit:' + a.id + '" type="button">Edit</button>' +
+            (a.isPublished
+              ? '<button class="btn btn-ghost" data-act="unpublish:' + a.id + '" type="button">Unpublish</button>'
+              : '<button class="btn btn-orange" data-act="publish:' + a.id + '" type="button">Publish</button>') +
+            '<button class="btn btn-danger" data-act="delete:' + a.id + '" type="button">Delete</button>' +
+          '</span></td>' +
+        '</tr>';
+      }).join('');
+
+      root.innerHTML =
+        '<div class="admin-card">' +
+          '<div class="card-head"><h2>All announcements</h2><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="badge">' + anns.length + ' total</span>' + ADD_BTN + '</span></div>' +
+          '<div class="admin-table-wrap clickable-rows"><table class="admin-table">' +
+            '<thead><tr><th>Announcement</th><th>Category</th><th>Audience</th><th>School</th><th>Status</th><th>Actions</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table></div>' +
+        '</div>';
+
+      root.querySelectorAll('[data-act]').forEach(function(b){
+        b.addEventListener('click', function(e){
+          e.stopPropagation();
+          var p = b.dataset.act.split(':');
+          var id = Number(p[1]);
+          if(p[0] === 'view') openDetail(id);
+          else if(p[0] === 'edit') openForm(id);
+          else if(p[0] === 'publish') setPublished(id, true);
+          else if(p[0] === 'unpublish') setPublished(id, false);
+          else if(p[0] === 'delete') removeAnn(id);
+        });
+      });
+      root.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
+        tr.addEventListener('click', function(){ openDetail(Number(tr.dataset.id)); });
+      });
+    }).catch(function(){
+      busy = false;
+      document.getElementById('annRoot').innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('megaphone')+'</div><h3>Could not reach the server</h3><p>Check your connection and try again.</p></div></div>';
+    });
+  }
+
+  // ---------- Actions ----------
+  function patch(id, body, okMsg){
+    NN.api('/api/admin/announcements/' + id, { method:'PATCH', body: JSON.stringify(body) }).then(function(r){
+      if(!r.ok){ flash((r.data && r.data.error) || 'Could not update the announcement.', 'error'); return; }
+      flash(okMsg || 'Updated.');
+      load();
+      if(currentId === id && document.getElementById('detailModal').classList.contains('show')) openDetail(id);
+    });
+  }
+  function setPublished(id, on){
+    var a = anns.filter(function(x){ return x.id === id; })[0];
+    patch(id, { isPublished: !!on }, on
+      ? 'Published' + (a ? ' "' + a.title.slice(0,40) + '"' : '') + ' — the audience has been notified.'
+      : 'Unpublished — it is now a hidden draft.');
+  }
+  function removeAnn(id){
+    var a = anns.filter(function(x){ return x.id === id; })[0];
+    if(!window.confirm('Delete "' + (a ? a.title : 'this announcement') + '" permanently? This cannot be undone.')) return;
+    NN.api('/api/admin/announcements/' + id, { method:'DELETE' }).then(function(r){
+      if(!r.ok){ flash((r.data && r.data.error) || 'Could not delete the announcement.', 'error'); return; }
+      flash('Announcement deleted.');
+      closeModal('detailModal');
+      load();
+    });
+  }
+
+  // ---------- Floating details card ----------
+  function openDetail(id){
+    currentId = id;
+    var a = anns.filter(function(x){ return x.id === id; })[0];
+    var modal = document.getElementById('detailModal');
+    var actions = document.getElementById('dmActions');
+    actions.hidden = true;
+    document.getElementById('dmTitle').textContent = 'Announcement';
+    document.getElementById('dmBody').innerHTML = '<div class="notes-loading"><span class="spinner"></span> Loading…</div>';
+    modal.classList.add('show');
+
+    // Refresh from the server so the body is always current
+    NN.api('/api/admin/announcements').then(function(r){
+      var list = Array.isArray(r.data) ? r.data : (r.data && r.data.announcements) || [];
+      a = list.filter(function(x){ return x.id === id; })[0] || a;
+      if(!a){
+        document.getElementById('dmBody').innerHTML = '<div class="notes-empty"><h3>Announcement not found</h3><p>It may have been deleted.</p></div>';
+        return;
+      }
+      var c = cat(a.category), au = aud(a.audience);
+      document.getElementById('dmTitle').textContent = a.title;
+      document.getElementById('dmBody').innerHTML =
+        '<div class="ann-head">' +
+          '<div class="ann-emoji">' + c.emoji + '</div>' +
+          '<div><h3>' + esc(a.title) + '</h3>' +
+          '<div class="pmeta">' +
+            '<span class="badge ' + c.badge + '">' + c.label + '</span>' +
+            '<span class="badge ' + au.badge + '">' + au.label + '</span>' +
+            (a.isPublished ? '<span class="badge ok">Published</span>' : '<span class="badge warn">Draft</span>') +
+            (a.isPinned ? '<span class="badge info">📌 Pinned</span>' : '') +
+          '</div></div>' +
+        '</div>' +
+        '<div class="info-grid">' +
+          '<div class="info-item"><small>School</small><b>' + esc(a.schoolName || 'All schools') + '</b></div>' +
+          '<div class="info-item"><small>District</small><b>' + esc(a.district || '—') + '</b></div>' +
+          '<div class="info-item"><small>Created</small><b>' + fmtDateTime(a.createdAt) + '</b></div>' +
+          '<div class="info-item"><small>Last updated</small><b>' + (a.updatedAt && a.updatedAt !== a.createdAt ? fmtDateTime(a.updatedAt) : '—') + '</b></div>' +
+          '<div class="info-item"><small>Reaches</small><b>' + (a.audience === 'students' ? 'Students' : a.audience === 'teachers' ? 'Teachers' : 'All users') + '</b></div>' +
+          '<div class="info-item"><small>Message length</small><b>' + (a.body ? a.body.length : 0) + ' characters</b></div>' +
+        '</div>' +
+        '<div class="section-title">Full message</div>' +
+        '<div class="ann-body-panel">' + (a.body ? esc(a.body) : '<span class="muted">Empty message.</span>') + '</div>';
+
+      actions.hidden = false;
+      document.getElementById('dmEdit').onclick = function(){ closeModal('detailModal'); openForm(id, a); };
+      var pb = document.getElementById('dmPublish');
+      pb.textContent = a.isPublished ? 'Unpublish' : 'Publish';
+      pb.className = 'btn ' + (a.isPublished ? 'btn-ghost' : 'btn-orange');
+      pb.onclick = function(){ setPublished(id, !a.isPublished); };
+      var pin = document.getElementById('dmPin');
+      pin.textContent = a.isPinned ? 'Unpin' : 'Pin to top';
+      pin.onclick = function(){ patch(id, { isPinned: !a.isPinned }, a.isPinned ? 'Unpinned.' : 'Pinned to the top of the feed.'); };
+      document.getElementById('dmDelete').onclick = function(){ removeAnn(id); };
+    });
+  }
+
+  // ---------- Modals ----------
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.addEventListener('click', function(e){
+    var c = e.target.closest('[data-close]');
+    if(c) closeModal(c.dataset.close);
+    if(e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('show');
+  });
+
+  // ---------- Create / edit ----------
+  function openForm(id, pre){
+    var errEl = document.getElementById('fmError');
+    errEl.className = 'alert error';
+    var a = pre || (id ? anns.filter(function(x){ return x.id === id; })[0] : null);
+
+    if(a){
+      document.getElementById('fmEditId').value = a.id;
+      document.getElementById('fmTitle').textContent = 'Edit announcement';
+      document.getElementById('fmSubmit').textContent = 'Save changes';
+      document.getElementById('fmTitleInput').value = a.title || '';
+      document.getElementById('fmBody').value = a.body || '';
+      document.getElementById('fmCategory').value = a.category || 'general';
+      document.getElementById('fmAudience').value = a.audience || 'all';
+      document.getElementById('fmPinned').checked = !!a.isPinned;
+      document.getElementById('fmPublished').checked = !!a.isPublished;
+      document.getElementById('fmSchool').value = a.schoolName || '';
+    } else {
+      document.getElementById('fmEditId').value = '';
+      document.getElementById('annForm').reset();
+      document.getElementById('fmTitle').textContent = 'New announcement';
+      document.getElementById('fmSubmit').textContent = 'Publish announcement';
+      document.getElementById('fmPublished').checked = true;
+      document.getElementById('fmSchool').value = '';
+    }
+    updateCount();
+    document.getElementById('formModal').classList.add('show');
+    setTimeout(function(){ document.getElementById('fmTitleInput').focus(); }, 60);
+  }
+
+  function updateCount(){
+    var n = document.getElementById('fmBody').value.length;
+    var el = document.getElementById('fmCount');
+    el.textContent = n + ' / 5000';
+    el.className = 'char-count' + (n > 4700 ? ' warn' : '');
+  }
+  document.getElementById('fmBody').addEventListener('input', updateCount);
+  document.getElementById('annRoot').addEventListener('click', function(e){ if (e.target.closest('#newAnnBtn')) openForm(null); });
+
+  document.getElementById('annForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var errEl = document.getElementById('fmError');
+    var btn = document.getElementById('fmSubmit');
+    var editId = document.getElementById('fmEditId').value;
+    var title = document.getElementById('fmTitleInput').value.trim();
+    var body = document.getElementById('fmBody').value.trim();
+    var published = document.getElementById('fmPublished').checked;
+
+    if(!title){ errEl.textContent = 'Please give the announcement a title.'; errEl.className = 'alert error show'; return; }
+    if(!body){ errEl.textContent = 'Please write the announcement message.'; errEl.className = 'alert error show'; return; }
+
+    var payload = {
+      title: title,
+      body: body,
+      category: document.getElementById('fmCategory').value,
+      audience: document.getElementById('fmAudience').value,
+      schoolName: document.getElementById('fmSchool').value.trim() || null,
+      isPinned: document.getElementById('fmPinned').checked,
+      isPublished: published,
+    };
+    btn.disabled = true;
+    var url = editId ? '/api/admin/announcements/' + editId : '/api/admin/announcements';
+    var method = editId ? 'PATCH' : 'POST';
+    NN.api(url, { method: method, body: JSON.stringify(payload) }).then(function(r){
+      btn.disabled = false;
+      if(!r.ok && r.status !== 201){ errEl.textContent = (r.data && r.data.error) || 'Could not save the announcement.'; errEl.className = 'alert error show'; return; }
+      closeModal('formModal');
+      flash(editId ? 'Announcement updated.' : (published ? 'Announcement published — the audience has been notified.' : 'Saved as a draft (not published yet).'));
+      load();
+    }).catch(function(){ btn.disabled = false; errEl.textContent = 'Could not reach the server.'; errEl.className = 'alert error show'; });
+  });
+
+  // ---------- Search (debounced) ----------
+  var searchT;
+  document.getElementById('annSearch').addEventListener('input', function(){
+    clearTimeout(searchT);
+    searchT = setTimeout(load, 300);
+  });
+
+  // ---------- Mobile sidebar toggle ----------
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  load();
+  </script>
+</body>
+</html>

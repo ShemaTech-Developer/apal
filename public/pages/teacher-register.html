@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Teacher Account — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/auth.css"><link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html"><img src="../assets/logo/apalink-logo.png" alt="APALINK logo"><b>APA</b><span>LINK</span></a>
+    <span class="tag">Teacher registration</span>
+  </header>
+
+  <div class="auth-split">
+    <aside class="photo-panel" aria-label="Teachers teaching">
+      <div class="slide active"><img src="../assets/images/teacher1.jpg" alt="A teacher guiding a class"></div>
+      <div class="slide"><img src="../assets/images/teacher2.jpg" alt="A teacher helping students"></div>
+      <div class="slide"><img src="../assets/images/teacher3.jpg" alt="A teacher preparing lessons"></div>
+      <div class="shade"></div>
+      <div class="photo-copy">
+        <h2>Join APALINK, Teacher</h2>
+        <p>Create your teacher account — you can publish to any section and level.</p>
+      </div>
+      <div class="dots" role="tablist" aria-label="Photos"></div>
+    </aside>
+
+    <section class="form-panel">
+      <div class="form-card">
+        <a class="brand" href="../index.html"><img src="../assets/logo/apalink-logo.png" alt="APALINK logo"><b>APA</b><span>LINK</span></a>
+        <h1>Create teacher account</h1>
+        <p class="sub">Choose the school where you teach. You will receive that school's announcements and updates.</p>
+        <div id="teacherRegisterError" class="alert error" role="alert"></div>
+        <form id="teacherRegisterForm" novalidate>
+          <div class="field">
+            <label for="fullName">Full name *</label>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" required placeholder="e.g. Uwase Angel">
+          </div>
+          <div class="field">
+            <label for="username">Username *</label>
+            <input id="username" name="username" type="text" autocomplete="username" required placeholder="3–24 letters, numbers, _">
+          </div>
+          <div class="field">
+            <label for="email">Email address <span class="muted">(optional)</span></label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@school.edu">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="district">School district</label>
+              <select id="district" name="district"><option value="">Choose district (optional)…</option></select>
+            </div>
+            <div class="field">
+              <label for="schoolName">School where you teach *</label>
+              <input id="schoolName" name="schoolName" type="text" required minlength="3" maxlength="120" placeholder="Type the school's name, e.g. APADE High School" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="phone">Phone number *</label>
+              <div class="password-wrap">
+                <span class="phone-prefix">+250</span>
+                <input id="phone" name="phone" type="tel" required inputmode="numeric" pattern="07[0-9]{8}" title="Type the number starting with 07, e.g. 0788123456" placeholder="0788 123 456" autocomplete="tel-national">
+              </div>
+              <p class="field-hint">The <b>+250</b> is added automatically — just type the number starting with <b>07…</b></p>
+            </div>
+          </div>
+          <p class="field-hint" id="teacherSchoolHint">Choose your district, then type the school where you teach.</p>
+          <div class="field">
+            <label for="password">Password *</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="new-password" required placeholder="At least 6 characters">
+              <button class="toggle" type="button" data-toggle-target="password">Show</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="confirm">Confirm password *</label>
+            <div class="password-wrap">
+              <input id="confirm" name="confirm" type="password" autocomplete="new-password" required placeholder="Repeat your password">
+              <button class="toggle" type="button" data-toggle-target="confirm">Show</button>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">Create teacher account</button>
+        </form>
+        <div class="form-links">
+          <span class="muted">Already registered?</span>
+          <a class="link" href="student-login.html#teacher">Log in</a>
+        </div>
+        <a class="back-link" href="../index.html">← Back to role selection</a>
+      </div>
+    </section>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/image-slider.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/clerk.js"></script>
+</body>
+</html>

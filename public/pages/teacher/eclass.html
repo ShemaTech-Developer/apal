@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E-Class — APALINK Teacher</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css"><link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body data-view="t-eclass">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+      <!-- dash-head gets the top-right account chip + bell from dashboard.js -->
+      <div class="dash-head"><div><h1>E-Class</h1><p class="welcome-sub">Go live, teach your class online, and answer questions in the chat.</p></div></div>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <section class="panel">
+        <h2><span data-icon="presentation"></span> My classes</h2>
+        <p class="muted" style="margin-top:-6px">Choose the class you are going to teach, optionally give the lesson a title, then press <b>Go Live</b>. Students of that class get a notification and a Join Class button.</p>
+        <div id="classGrid" class="eclass-grid">
+          <div class="notes-loading"><span class="spinner"></span> Loading your classes…</div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:18px">
+        <h2><span data-icon="clock"></span> Recent e-classes</h2>
+        <ul class="plain-list" id="historyList"><li class="muted">No live classes yet — go live above.</li></ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  var alertBox = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    alertBox.textContent = msg || '';
+    alertBox.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ alertBox.className = 'alert'; }, 4000);
+  }
+
+  function fmtWhen(s) {
+    if (!s) return '—';
+    return String(s).replace('T', ' ').slice(0, 16);
+  }
+
+  function renderClasses(rows) {
+    var grid = document.getElementById('classGrid');
+    if (!rows.length) {
+      grid.innerHTML = '<div class="notes-empty"><h3>No classes assigned to you yet</h3><p>Your administrator assigns the classes you teach on the Teachers page — once assigned, they appear here.</p></div>';
+      return;
+    }
+    grid.innerHTML = rows.map(function (c) {
+      var live = c.live;
+      var key = esc(c.departmentId + '|' + c.levelId + '|' + c.className);
+      return '<article class="eclass-card' + (live ? ' live' : '') + '">' +
+        '<div class="eclass-card-top">' +
+          '<b>' + esc((c.departmentCode || c.department) + ' · ' + c.level) + '</b>' +
+          '<span class="eclass-count">' + c.students + ' student' + (c.students === 1 ? '' : 's') + '</span>' +
+        '</div>' +
+        '<div class="eclass-card-class">Class <b>' + esc(c.className || '—') + '</b><span>' + esc(c.department) + '</span></div>' +
+        (live
+          ? '<div class="eclass-live-chip">● Live now: ' + esc(live.title || 'Live class') + '</div>' +
+            '<a class="btn btn-orange btn-block" href="../eclass-room.html?id=' + live.id + '"><span data-icon="presentation"></span> Join live class</a>'
+          : '<div class="eclass-go-live">' +
+              '<input class="eclass-title-in" type="text" maxlength="160" placeholder="Lesson title, e.g. Forces and Motion" data-key="' + key + '" aria-label="Lesson title">' +
+              '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin:2px 0">' +
+                '<span title="Scheduled time window" style="font-weight:700">🕒 From</span>' +
+                '<input class="eclass-time-in" type="time" data-time="start" data-key="' + key + '" aria-label="Class start time" required>' +
+                '<span>to</span>' +
+                '<input class="eclass-time-in" type="time" data-time="end" data-key="' + key + '" aria-label="Class end time" required>' +
+              '</div>' +
+              '<button class="btn btn-primary" type="button" data-go-live="' + key + '"><span data-icon="presentation"></span> Go Live</button>' +
+            '</div>') +
+      '</article>';
+    }).join('');
+
+    grid.querySelectorAll('[data-go-live]').forEach(function (btn) {
+      btn.addEventListener('click', function () { startClass(btn); });
+    });
+    grid.querySelectorAll('.eclass-title-in').forEach(function (input) {
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { var b = input.parentNode.querySelector('[data-go-live]'); if (b) b.click(); } });
+    });
+    // Default the time window: from now (rounded up to 5 min) to one hour later.
+    function hm(d) { return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+    grid.querySelectorAll('.eclass-time-in[data-time="start"]').forEach(function (t) {
+      if (!t.value) { var d = new Date(); d.setMinutes(Math.ceil(d.getMinutes() / 5) * 5); t.value = hm(d); }
+    });
+    grid.querySelectorAll('.eclass-time-in[data-time="end"]').forEach(function (t) {
+      if (!t.value) { var d = new Date(Date.now() + 60 * 60000); t.value = hm(d); }
+    });
+  }
+
+  function startClass(btn) {
+    var key = btn.getAttribute('data-go-live');
+    var parts = key.split('|');
+    var wrap = btn.closest('.eclass-go-live');
+    var input = wrap ? wrap.querySelector('.eclass-title-in') : null;
+    var startIn = wrap ? wrap.querySelector('.eclass-time-in[data-time="start"]') : null;
+    var endIn = wrap ? wrap.querySelector('.eclass-time-in[data-time="end"]') : null;
+    var title = (input.value || '').trim() || 'Live class';
+    var startTime = startIn ? startIn.value : '';
+    var endTime = endIn ? endIn.value : '';
+    if (!startTime || !endTime) { flash('Set the class time — from and to (e.g. 10:00 to 11:00).', 'error'); return; }
+    function mins(t) { var p = t.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+    if (mins(endTime) <= mins(startTime)) { flash('The end time must be after the start time.', 'error'); return; }
+    btn.disabled = true;
+    NN.api('/api/teacher/eclasses', {
+      method: 'POST',
+      body: JSON.stringify({ departmentId: Number(parts[0]), levelId: Number(parts[1]), className: parts[2], title: title, startTime: startTime, endTime: endTime }),
+    }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) {
+        var err = (r.data && r.data.error) || 'Could not start the class.';
+        if (r.status === 409 && r.data && r.data.liveId) {
+          flash('That class is already live — joining it.', 'success');
+          setTimeout(function () { window.location.href = '../eclass-room.html?id=' + r.data.liveId; }, 600);
+          return;
+        }
+        flash(err, 'error');
+        return;
+      }
+      flash('You are live — opening the classroom…');
+      setTimeout(function () { window.location.href = '../eclass-room.html?id=' + r.data.id; }, 500);
+    }).catch(function () { btn.disabled = false; flash('Could not reach the server.', 'error'); });
+  }
+
+  function renderHistory(rows) {
+    var list = document.getElementById('historyList');
+    if (!rows.length) { list.innerHTML = '<li class="muted">No live classes yet — go live above.</li>'; return; }
+    list.innerHTML = rows.map(function (c) {
+      var cls = esc((c.departmentCode || c.department) + ' · ' + c.level + (c.className ? ' · Class ' + c.className : ''));
+      var badge = c.status === 'live' ? '<span class="badge danger">Live</span>' : '<span class="badge ok">Ended</span>';
+      return '<li style="display:flex;justify-content:space-between;gap:12px;align-items:center">' +
+        '<span><b>' + esc(c.title) + '</b><br><small class="muted">' + cls + ' · ' + (c.subject ? esc(c.subject) + ' · ' : '') + fmtWhen(c.startedAt) + (c.startTime ? ' · 🕒 ' + esc(c.startTime) + '–' + esc(c.endTime || '…') : '') + ' · ' + c.participants + ' participant(s)</small></span>' +
+        '<span style="display:flex;gap:8px;align-items:center">' + badge +
+          (c.status === 'live' ? '<a class="btn btn-orange" href="../eclass-room.html?id=' + c.id + '">Join</a>' : '') +
+        '</span>' +
+      '</li>';
+    }).join('');
+  }
+
+  function loadAll() {
+    NN.api('/api/teacher/classes').then(function (r) {
+      if (!r.ok) { document.getElementById('classGrid').innerHTML = '<div class="notes-empty"><h3>Sign in as teacher</h3><p>Could not load your classes.</p></div>'; return; }
+      renderClasses(Array.isArray(r.data) ? r.data : []);
+    });
+    NN.api('/api/teacher/eclasses').then(function (r) {
+      renderHistory((r.ok && Array.isArray(r.data)) ? r.data : []);
+    });
+  }
+
+  loadAll();
+  </script>
+</body>
+</html>

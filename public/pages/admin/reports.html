@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Message Reports — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav active" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Message Reports</h1>
+          <p>Messages reported by students and teachers — review the context, hide or remove them.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <!-- Toolbar: search + status filter -->
+      <div class="admin-toolbar">
+        <div class="admin-search">
+          <span data-icon="search"></span>
+          <input id="repSearch" type="search" autocomplete="off" placeholder="Search message, reason or reporter…" aria-label="Search reports">
+        </div>
+        <div class="field" style="margin:0;min-width:170px">
+          <select id="repStatus" aria-label="Filter by status" style="padding:11px 13px">
+            <option value="open">Status: open</option>
+            <option value="hidden">Status: hidden</option>
+            <option value="dismissed">Status: dismissed</option>
+            <option value="all">Status: all</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="notes-summary" id="repSummary"></div>
+
+      <!-- Reports table (loaded from the server) -->
+      <div id="repRoot">
+        <div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading reports from the server…</div></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Floating details card (click a row) -->
+  <div class="modal" id="detailModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="dmTitle">Report</h2><button class="btn btn-ghost" data-close="detailModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="dmBody"><div class="notes-loading"><span class="spinner"></span> Loading…</div></div>
+      <div class="modal-actions" id="dmActions" hidden>
+        <button class="btn btn-orange" id="dmHide" type="button">Hide message</button>
+        <button class="btn btn-danger" id="dmDelete" type="button">Delete message</button>
+        <button class="btn btn-ghost" id="dmDismiss" type="button">Dismiss report</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtDate(s){ return s ? String(s).slice(0,10) : '—'; }
+  function fmtDateTime(s){ return s ? String(s).replace('T',' ').slice(0,16) : '—'; }
+  function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('') || '?'; }
+  function roleLabel(r){ return r === 'teacher' ? 'Teacher' : r === 'student' ? 'Student' : 'User'; }
+
+  var STATUS_BADGE = { open: 'warn', hidden: 'danger', dismissed: 'ok' };
+  var STATUS_LABEL = { open: 'Open', hidden: 'Hidden', dismissed: 'Dismissed' };
+
+  var pageAlert = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    pageAlert.textContent = msg || '';
+    pageAlert.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ pageAlert.className = 'alert'; }, 4000);
+  }
+
+  var reports = [];       // every report (all statuses)
+  var currentId = null;
+  var busy = false;
+
+  function load(){
+    if(busy) return;
+    busy = true;
+    var root = document.getElementById('repRoot');
+    root.innerHTML = '<div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading reports from the server…</div></div>';
+
+    NN.api('/api/admin/reports?status=all').then(function(r){
+      busy = false;
+      if(!r.ok){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('shield')+'</div><h3>Administrator login required</h3><p>Sign in as administrator to review reports.</p></div></div>';
+        document.getElementById('repSummary').innerHTML = '';
+        return;
+      }
+      reports = Array.isArray(r.data) ? r.data : [];
+      render();
+    }).catch(function(){
+      busy = false;
+      document.getElementById('repRoot').innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('shield')+'</div><h3>Could not reach the server</h3><p>Check your connection and try again.</p></div></div>';
+    });
+  }
+
+  function render(){
+    var q = document.getElementById('repSearch').value.trim().toLowerCase();
+    var st = document.getElementById('repStatus').value;
+
+    // Summary (from the full list)
+    var byStatus = { open: 0, hidden: 0, dismissed: 0 };
+    reports.forEach(function(x){ if(byStatus[x.status] !== undefined) byStatus[x.status]++; });
+    document.getElementById('repSummary').innerHTML =
+      '<div class="admin-stat"><div class="ic">'+NN.icon('shield')+'</div><div><div class="n">'+reports.length+'</div><div class="l">Total reports</div></div></div>' +
+      '<div class="admin-stat"><div class="ic">'+NN.icon('alert-triangle')+'</div><div><div class="n">'+byStatus.open+'</div><div class="l">Open (need action)</div></div></div>' +
+      '<div class="admin-stat"><div class="ic">'+NN.icon('eye-off')+'</div><div><div class="n">'+byStatus.hidden+'</div><div class="l">Messages hidden</div></div></div>' +
+      '<div class="admin-stat"><div class="ic">'+NN.icon('circle-check')+'</div><div><div class="n">'+byStatus.dismissed+'</div><div class="l">Dismissed</div></div></div>';
+
+    // Filter
+    var list = reports.filter(function(x){
+      if(st !== 'all' && x.status !== st) return false;
+      if(!q) return true;
+      var hay = ((x.body || '') + ' ' + (x.reason || '') + ' ' +
+        ((x.reporter && x.reporter.fullName) || '') + ' ' + ((x.sender && x.sender.fullName) || '')).toLowerCase();
+      return hay.indexOf(q) > -1;
+    });
+
+    var root = document.getElementById('repRoot');
+    if(!list.length){
+      root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('shield')+'</div><h3>' +
+        (q ? 'No reports match your search' : (st === 'all' ? 'No reports at all' : 'No ' + st + ' reports')) + '</h3><p>' +
+        (q ? 'Try a different keyword.' : (st === 'open' ? 'Every reported message has been handled — great work.' : 'Try another status filter.')) + '</p></div></div>';
+      return;
+    }
+
+    var rows = list.map(function(x){
+      var msg = String(x.body || '').replace(/\s+/g, ' ');
+      return '<tr data-id="' + x.id + '">' +
+        '<td><b>Report #' + x.id + '</b><br><small class="muted">' + esc(x.reason || 'No reason given') + '</small></td>' +
+        '<td class="ann-title-cell"><small style="max-width:320px">"' + esc(msg.length > 90 ? msg.slice(0,90) + '…' : msg) + '</small>' +
+          (x.messageHidden ? ' <span class="badge danger">hidden</span>' : '') + '</td>' +
+        '<td><div class="user-cell"><span class="avatar">' + esc(initials(x.reporter && x.reporter.fullName)) + '</span><span><b>' + esc((x.reporter && x.reporter.fullName) || 'Unknown') + '</b><small>' + roleLabel(x.reporter && x.reporter.role) + '</small></span></div></td>' +
+        '<td><div class="user-cell"><span class="avatar">' + esc(initials(x.sender && x.sender.fullName)) + '</span><span><b>' + esc((x.sender && x.sender.fullName) || 'Unknown') + '</b><small>' + roleLabel(x.sender && x.sender.role) + '</small></span></div></td>' +
+        '<td>' + fmtDate(x.messageAt) + '<br><small class="muted">' + String(x.created_at || x.createdAt || '').slice(0,16) + '</small></td>' +
+        '<td><span class="badge ' + (STATUS_BADGE[x.status] || 'info') + '">' + (STATUS_LABEL[x.status] || x.status) + '</span></td>' +
+        '<td class="action-cell"><span class="notes-actions">' +
+          '<button class="btn btn-ghost" data-act="view:' + x.id + '" type="button">View</button>' +
+          (x.status === 'open'
+            ? '<button class="btn btn-orange" data-act="hide:' + x.id + '" type="button">Hide</button>' +
+              '<button class="btn btn-ghost" data-act="dismiss:' + x.id + '" type="button">Dismiss</button>' +
+              '<button class="btn btn-danger" data-act="delete:' + x.id + '" type="button">Delete</button>'
+            : '') +
+        '</span></td>' +
+      '</tr>';
+    }).join('');
+
+    root.innerHTML =
+      '<div class="admin-card">' +
+        '<div class="card-head"><h2>' + (st === 'all' ? 'All reports' : STATUS_LABEL[st] + ' reports') + '</h2><span class="badge">' + list.length + ' shown</span></div>' +
+        '<div class="admin-table-wrap clickable-rows"><table class="admin-table">' +
+          '<thead><tr><th>Report</th><th>Message</th><th>Reported by</th><th>Sent by</th><th>When</th><th>Status</th><th>Actions</th></tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table></div>' +
+      '</div>';
+
+    root.querySelectorAll('[data-act]').forEach(function(b){
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        var p = b.dataset.act.split(':');
+        var id = Number(p[1]);
+        if(p[0] === 'view') openDetail(id);
+        else if(p[0] === 'hide') resolve(id, 'hide');
+        else if(p[0] === 'dismiss') resolve(id, 'dismiss');
+        else if(p[0] === 'delete') resolve(id, 'delete');
+      });
+    });
+    root.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
+      tr.addEventListener('click', function(){ openDetail(Number(tr.dataset.id)); });
+    });
+  }
+
+  // ---------- Actions ----------
+  function resolve(id, action){
+    var x = reports.filter(function(r){ return r.id === id; })[0];
+    if(action === 'delete'){
+      if(!window.confirm('Delete this reported message permanently? The report is removed too. This cannot be undone.')) return;
+    }
+    NN.api('/api/admin/reports/' + id + '/resolve', { method:'POST', body: JSON.stringify({ action: action }) }).then(function(r){
+      if(!r.ok){ flash((r.data && r.data.error) || 'Could not update the report.', 'error'); return; }
+      flash(action === 'hide' ? 'Message hidden — it is no longer visible to anyone.'
+          : action === 'delete' ? 'Message deleted permanently.'
+          : 'Report dismissed — the message stays visible.');
+      closeModal('detailModal');
+      load();
+    });
+  }
+
+  // ---------- Floating details card ----------
+  function openDetail(id){
+    currentId = id;
+    var x = reports.filter(function(r){ return r.id === id; })[0];
+    if(!x) return;
+    var modal = document.getElementById('detailModal');
+    var actions = document.getElementById('dmActions');
+    document.getElementById('dmTitle').textContent = 'Report #' + x.id;
+    document.getElementById('dmBody').innerHTML =
+      '<div class="ann-head">' +
+        '<div class="ann-emoji">' + (x.status === 'open' ? '🚨' : x.status === 'hidden' ? '🙈' : '✅') + '</div>' +
+        '<div><h3>Reported message</h3>' +
+        '<div class="pmeta">' +
+          '<span class="badge ' + (STATUS_BADGE[x.status] || 'info') + '">' + (STATUS_LABEL[x.status] || x.status) + '</span>' +
+          (x.messageHidden ? '<span class="badge danger">Message hidden</span>' : '<span class="badge info">Message visible</span>') +
+        '</div></div>' +
+      '</div>' +
+      '<div class="info-grid">' +
+        '<div class="info-item"><small>Reported by</small><b>' + esc((x.reporter && x.reporter.fullName) || 'Unknown') + '</b></div>' +
+        '<div class="info-item"><small>Reporter role</small><b>' + roleLabel(x.reporter && x.reporter.role) + '</b></div>' +
+        '<div class="info-item"><small>Sent by</small><b>' + esc((x.sender && x.sender.fullName) || 'Unknown') + '</b></div>' +
+        '<div class="info-item"><small>Sender role</small><b>' + roleLabel(x.sender && x.sender.role) + '</b></div>' +
+        '<div class="info-item"><small>Reason</small><b>' + esc(x.reason || 'No reason given') + '</b></div>' +
+        '<div class="info-item"><small>Message sent</small><b>' + fmtDateTime(x.messageAt) + '</b></div>' +
+        '<div class="info-item"><small>Reported at</small><b>' + fmtDateTime(x.created_at || x.createdAt) + '</b></div>' +
+        '<div class="info-item"><small>Conversation</small><b>#' + (x.conversation_id || x.conversationId || '—') + '</b></div>' +
+      '</div>' +
+      '<div class="section-title">Reported message</div>' +
+      '<div class="ann-body-panel">' + (x.body ? esc(x.body) : '<span class="muted">Message not found.</span>') + '</div>';
+    actions.hidden = x.status !== 'open';
+    if(x.status === 'open'){
+      document.getElementById('dmHide').onclick = function(){ resolve(id, 'hide'); };
+      document.getElementById('dmDelete').onclick = function(){ resolve(id, 'delete'); };
+      document.getElementById('dmDismiss').onclick = function(){ resolve(id, 'dismiss'); };
+    }
+    modal.classList.add('show');
+  }
+
+  // ---------- Modals ----------
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.addEventListener('click', function(e){
+    var c = e.target.closest('[data-close]');
+    if(c) closeModal(c.dataset.close);
+    if(e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('show');
+  });
+
+  // ---------- Search + status filter (client-side, one dataset) ----------
+  var searchT;
+  document.getElementById('repSearch').addEventListener('input', function(){
+    clearTimeout(searchT);
+    searchT = setTimeout(render, 200);
+  });
+  document.getElementById('repStatus').addEventListener('change', render);
+
+  // ---------- Mobile sidebar toggle ----------
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  load();
+  </script>
+</body>
+</html>

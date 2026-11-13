@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css">
+</head>
+<body data-view="settings-center">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head"><div><h1><span data-icon="settings"></span> Settings</h1><p class="welcome-sub">Account, appearance, security and preferences — all saved to your account.</p></div></div>
+
+      <section class="panel"><h2>Account profile</h2>
+        <div class="profile-grid" style="margin-bottom:14px">
+          <div class="kv"><b>Full name</b><span id="sName">—</span></div>
+          <div class="kv"><b>Username</b><span id="sUser">—</span></div>
+          <div class="kv"><b>Email</b><span id="sEmail">—</span></div>
+          <div class="kv"><b>Role</b><span id="sRole">—</span></div>
+          <div class="kv"><b>Section</b><span id="sDept">—</span></div>
+          <div class="kv"><b>Level</b><span id="sLevel">—</span></div>
+          <div class="kv"><b>Class</b><span id="sClass">—</span></div>
+          <div class="kv"><b>School</b><span id="sSchool">—</span></div>
+          <div class="kv"><b>District</b><span id="sDistrict">—</span></div>
+          <div class="kv"><b>Joined</b><span id="sCreated">—</span></div>
+        </div>
+        <div id="profileError" class="alert error" role="alert"></div>
+        <div id="profileOk" class="alert success" role="status"></div>
+        <form id="profileForm" class="form-card" style="max-width:480px">
+          <div class="field"><label>Display name</label><input id="fullName" type="text" placeholder="Your name"></div>
+          <div class="field"><label>Username</label><input id="username" type="text" placeholder="3–24 letters, numbers, _"></div>
+          <div class="field"><label>Email (optional)</label><input id="email" type="email" placeholder="you@school.edu"></div>
+          <div class="field"><label>Profile picture (PNG/JPG)</label><input id="avatarFile" type="file" accept=".png,.jpg,.jpeg"></div>
+          <button class="btn btn-primary" type="submit">Save profile</button>
+          <p class="muted" style="font-size:.85rem">Section, level and official class can only be changed by the school administrator.</p>
+        </form>
+      </section>
+
+      <section class="panel"><h2>Appearance</h2>
+        <div id="prefError" class="alert error" role="alert"></div>
+        <div id="prefOk" class="alert success" role="status"></div>
+        <div class="form-grid" style="max-width:640px">
+          <div class="field"><label>Theme</label><select data-pref="theme"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System default</option></select></div>
+          <div class="field"><label>Font size</label><select data-pref="fontSize"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></div>
+          <div class="field"><label>Motion</label><select data-pref="motion"><option value="system">System default</option><option value="full">Full motion</option><option value="reduced">Reduced motion</option></select></div>
+          <div class="field"><label>Accent</label><select data-pref="accent"><option value="yellow">Yellow</option><option value="navy">Navy</option></select></div>
+          <div class="field"><label>Language</label><select data-pref="language"><option value="en">English</option><option value="fr">Français</option><option value="rw">Kinyarwanda</option></select></div>
+          <div class="field"><label>Date format</label><select data-pref="dateFormat"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option></select></div>
+          <div class="field"><label>Time format</label><select data-pref="timeFormat"><option value="24h">24-hour</option><option value="12h">12-hour</option></select></div>
+          <div class="field"><label>Time zone</label><input data-pref="timezone" type="text" placeholder="local"></div>
+        </div>
+        <h3 style="margin-top:20px">Privacy</h3>
+        <div class="form-grid" style="max-width:640px">
+          <div class="field"><label>Who can message me</label><select data-pref="messagePrivacy"><option value="school">Whole school</option><option value="classmates">Classmates only</option><option value="nobody">Nobody (only via admin)</option></select></div>
+          <div class="field"><label>Profile visibility</label><select data-pref="profileVisibility"><option value="school">School</option><option value="classmates">Classmates</option><option value="private">Private</option></select></div>
+          <div class="field"><label>Online status visibility</label><select data-pref="onlineVisibility"><option value="school">School</option><option value="private">Hidden</option></select></div>
+        </div>
+        <h3 style="margin-top:20px">Notifications</h3>
+        <label class="check"><input type="checkbox" data-pref="notif_messages" value="on"> New messages</label>
+        <label class="check"><input type="checkbox" data-pref="notif_notes" value="on"> Published notes</label>
+        <label class="check"><input type="checkbox" data-pref="notif_timetable" value="on"> Timetable changes</label>
+        <label class="check"><input type="checkbox" data-pref="notif_announcements" value="on"> School announcements</label>
+        <p><button class="btn btn-primary" id="savePrefsBtn" type="button">Save preferences</button></p>
+      </section>
+
+      <section class="panel"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div><h2 style="margin:0"><span data-icon="clock"></span> Activity history</h2><p class="muted" style="margin:4px 0 0">Your recent tasks and actions. You can delete entries you no longer want to see.</p></div>
+        <button class="btn btn-ghost" id="clearActivityBtn" type="button">Clear my history</button>
+      </div>
+      <ul class="plain-list" id="activityList" style="margin-top:14px"><li class="muted">Loading…</li></ul></section>
+
+      <section class="panel" style="max-width:560px"><h2>Security</h2>
+        <div id="pwError" class="alert error" role="alert"></div>
+        <div id="pwOk" class="alert success" role="status"></div>
+        <form id="pwForm" class="form-card">
+          <div class="field"><label>Current password</label><input name="currentPassword" type="password" required autocomplete="current-password"></div>
+          <div class="field"><label>New password (min 6 characters)</label><input name="newPassword" type="password" required autocomplete="new-password"></div>
+          <div class="field"><label>Confirm new password</label><input name="confirm" type="password" required autocomplete="new-password"></div>
+          <button class="btn btn-primary btn-block" type="submit">Change password</button>
+        </form>
+        <h3 style="margin-top:22px">Active sessions</h3>
+        <ul class="plain-list" id="sessionList"></ul>
+        <p style="margin-top:12px"><button class="btn btn-ghost" id="logoutAll" type="button">Log out everywhere</button></p>
+      </section>
+
+    </main>
+  </div>
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+  <script src="../../js/settings.js"></script>
+</body>
+</html>

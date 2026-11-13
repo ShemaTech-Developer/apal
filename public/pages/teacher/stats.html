@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Downloads — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css">
+</head>
+<body data-view="t-stats">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head"><div><h1><span data-icon="bar-chart-3"></span> Downloads</h1><p class="welcome-sub">How your notes are being downloaded.</p></div></div>
+      <section class="stats4">
+        <article class="stat-card"><div class="ic" data-icon="file-text"></div><div class="n" id="statNotes">—</div><div class="l">My notes</div></article>
+        <article class="stat-card"><div class="ic" data-icon="download"></div><div class="n" id="statDownloads">—</div><div class="l">Total downloads</div></article>
+      </section>
+      <section class="panel"><h2>By note</h2><ul class="plain-list" id="downloadsList"></ul></section>
+
+    </main>
+  </div>
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+</body>
+</html>

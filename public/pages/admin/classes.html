@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classes — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav active" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Classes</h1>
+          <p>Every class in the school — who is inside, and which live e-classes are running right now.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <!-- Summary -->
+      <div class="notes-summary" id="classSummary"></div>
+
+      <!-- Live e-classes -->
+      <section class="admin-card" style="margin-bottom:16px">
+        <div class="card-head"><h2>Live e-classes right now</h2><span class="badge danger" id="liveBadge">0 live</span></div>
+        <div id="liveRoot">
+          <div class="notes-loading"><span class="spinner"></span> Checking for live classes…</div>
+        </div>
+      </section>
+
+      <!-- All classes -->
+      <section class="admin-card">
+        <div class="card-head"><h2>All classes</h2><span class="badge" id="classCount"></span></div>
+        <div class="admin-search" style="margin:0 0 12px;max-width:420px">
+          <span data-icon="search"></span>
+          <input id="classSearch" type="search" placeholder="Search department, level or class…" autocomplete="off" aria-label="Search classes">
+        </div>
+        <div class="eclass-grid" id="classesRoot">
+          <div class="notes-loading"><span class="spinner"></span> Loading classes…</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Students inside a class -->
+  <div class="modal" id="studentsModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="smTitle">Students</h2><button class="btn btn-ghost" data-close="studentsModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="smBody"><div class="notes-loading"><span class="spinner"></span> Loading…</div></div>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function initials(n){ return String(n||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('') || '?'; }
+  function fmtWhen(s){ return s ? String(s).replace('T',' ').slice(0,16) : '—'; }
+
+  var pageAlert = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    pageAlert.textContent = msg || '';
+    pageAlert.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ pageAlert.className = 'alert'; }, 4000);
+  }
+
+  var classes = [];
+  var live = [];
+
+  function renderLive(){
+    var root = document.getElementById('liveRoot');
+    var badge = document.getElementById('liveBadge');
+    badge.textContent = live.length + ' live';
+    badge.className = 'badge' + (live.length ? ' danger' : ' ok');
+    if (!live.length) {
+      root.innerHTML = '<div class="notes-empty" style="padding:24px"><div class="file-ic">'+NN.icon('monitor')+'</div><h3>No e-classes running right now</h3><p>When a teacher goes live, it will appear here — you can join it too.</p></div>';
+      return;
+    }
+    root.innerHTML = '<div class="eclass-grid">' + live.map(function (e) {
+      return '<article class="eclass-card live">' +
+        '<div class="eclass-card-top"><b>' + esc((e.departmentCode || e.department) + ' · ' + e.level) + '</b><span class="eclass-live-badge">Live</span></div>' +
+        '<div class="eclass-card-class">Class <b>' + esc(e.className) + '</b><span>' + esc(e.title) + (e.subject ? ' · ' + esc(e.subject) : '') + '</span></div>' +
+        '<div class="muted" style="font-size:.82rem"><b>' + esc(e.teacherName) + '</b> · started ' + fmtWhen(e.startedAt) + '<br>' + e.participants + ' participant' + (e.participants === 1 ? '' : 's') + ' in call</div>' +
+        '<a class="btn btn-orange btn-block" href="../eclass-room.html?id=' + e.id + '"><span data-icon="presentation"></span> Join class</a>' +
+      '</article>';
+    }).join('') + '</div>';
+  }
+
+  function renderSummary(){
+    var totalStudents = classes.reduce(function (s, c) { return s + (Number(c.students) || 0); }, 0);
+    var withLive = classes.filter(function (c) { return c.live; }).length;
+    document.getElementById('classSummary').innerHTML =
+      '<div class="admin-stat"><div class="ic">'+NN.icon('school')+'</div><div><div class="n">' + classes.length + '</div><div class="l">Classes</div></div></div>' +
+      '<div class="admin-stat"><div class="ic">'+NN.icon('users')+'</div><div><div class="n">' + totalStudents + '</div><div class="l">Students</div></div></div>' +
+      '<div class="admin-stat"><div class="ic">'+NN.icon('presentation')+'</div><div><div class="n">' + live.length + '</div><div class="l">Live e-classes</div></div></div>' +
+      '<div class="admin-stat"><div class="ic">'+NN.icon('radio')+'</div><div><div class="n">' + withLive + '</div><div class="l">Live classes in session</div></div></div>';
+  }
+
+  function renderClasses(){
+    var q = (document.getElementById('classSearch').value || '').trim().toLowerCase();
+    var rows = classes.filter(function (c) {
+      if (!q) return true;
+      return (c.department + ' ' + c.departmentCode + ' ' + c.level + ' ' + c.className).toLowerCase().indexOf(q) > -1;
+    });
+    document.getElementById('classCount').textContent = rows.length + ' shown';
+    var root = document.getElementById('classesRoot');
+    if (!rows.length) {
+      root.innerHTML = '<div class="notes-empty" style="grid-column:1/-1"><h3>No classes match your search</h3><p>Try a different department, level or class.</p></div>';
+      return;
+    }
+    root.innerHTML = rows.map(function (c) {
+      var liveBadge = c.live ? '<span class="eclass-live-badge">Live now</span>' : '';
+      return '<article class="eclass-card' + (c.live ? ' live' : '') + '">' +
+        '<div class="eclass-card-top"><b>' + esc((c.departmentCode || c.department) + ' · ' + c.level) + '</b>' + liveBadge + '</div>' +
+        '<div class="eclass-card-class">Class <b>' + esc(c.className) + '</b><span>' + esc(c.department) + '</span></div>' +
+        '<div class="muted" style="font-size:.84rem"><b>' + c.students + '</b> student' + (c.students === 1 ? '' : 's') + ' enrolled</div>' +
+        '<button class="btn btn-ghost" data-students="' + c.departmentId + '|' + c.levelId + '|' + esc(c.className) + '" type="button"><span data-icon="users"></span> View students</button>' +
+        (c.live ? '<a class="btn btn-orange" href="../eclass-room.html?id=' + c.live.id + '"><span data-icon="presentation"></span> Join live class</a>' : '') +
+      '</article>';
+    }).join('');
+    root.querySelectorAll('[data-students]').forEach(function (b) {
+      b.addEventListener('click', function () { openStudents(b.getAttribute('data-students')); });
+    });
+  }
+
+  function openStudents(key) {
+    var parts = key.split('|');
+    var modal = document.getElementById('studentsModal');
+    var body = document.getElementById('smBody');
+    document.getElementById('smTitle').textContent = 'Students — ' + (classes.filter(function (c) { return String(c.departmentId) === parts[0] && String(c.levelId) === parts[1] && c.className === parts[2]; })[0] || {}).departmentCode + ' · Class ' + parts[2];
+    body.innerHTML = '<div class="notes-loading"><span class="spinner"></span> Loading students…</div>';
+    modal.classList.add('show');
+    NN.api('/api/admin/classes/students?departmentId=' + encodeURIComponent(parts[0]) + '&levelId=' + encodeURIComponent(parts[1]) + '&className=' + encodeURIComponent(parts[2]))
+      .then(function (r) {
+        var rows = (r.ok && Array.isArray(r.data)) ? r.data : [];
+        if (!rows.length) { body.innerHTML = '<p class="muted">No students enrolled.</p>'; return; }
+        body.innerHTML = '<ul class="plain-list">' + rows.map(function (s) {
+          var pic = s.avatar
+            ? '<img src="/api/admin/avatars/' + encodeURIComponent(s.avatar) + '" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover">'
+            : '<span class="ravatar" style="width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--blue-soft);color:var(--navy);font-weight:800">' + esc(initials(s.fullName)) + '</span>';
+          return '<li style="display:flex;gap:10px;align-items:center">' + pic +
+            '<span style="min-width:0"><b>' + esc(s.fullName) + '</b><br><small class="muted">@' + esc(s.username) + (s.email ? ' · ' + esc(s.email) : '') + '</small></span>' +
+            (s.active ? '<span class="badge ok" style="margin-left:auto">Active</span>' : '<span class="badge warn" style="margin-left:auto">Inactive</span>') +
+          '</li>';
+        }).join('') + '</ul>';
+      }).catch(function () { body.innerHTML = '<p class="muted">Could not load students.</p>'; });
+  }
+
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest('[data-close]');
+    if (c) closeModal(c.dataset.close);
+    if (e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('show');
+  });
+
+  function load(){
+    NN.api('/api/eclasses/live').then(function (r) {
+      live = (r.ok && Array.isArray(r.data)) ? r.data : [];
+      renderLive();
+    }).catch(function () { document.getElementById('liveRoot').innerHTML = '<p class="muted">Could not check live classes.</p>'; });
+    NN.api('/api/admin/classes').then(function (r) {
+      classes = (r.ok && Array.isArray(r.data)) ? r.data : [];
+      renderSummary();
+      renderClasses();
+    }).catch(function () { document.getElementById('classesRoot').innerHTML = '<p class="muted">Could not load classes.</p>'; });
+  }
+
+  var searchT;
+  document.getElementById('classSearch').addEventListener('input', function () {
+    clearTimeout(searchT);
+    searchT = setTimeout(renderClasses, 180);
+  });
+
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  load();
+  // Refresh live view every 20 seconds
+  setInterval(function () {
+    NN.api('/api/eclasses/live').then(function (r) {
+      var next = (r.ok && Array.isArray(r.data)) ? r.data : [];
+      if (JSON.stringify(next.map(function (e) { return e.id; })) !== JSON.stringify(live.map(function (e) { return e.id; }))) {
+        live = next; renderLive(); renderSummary(); renderClasses();
+      }
+    }).catch(function () {});
+  }, 20000);
+  </script>
+</body>
+</html>

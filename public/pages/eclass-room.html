@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live class — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body class="eclass-body">
+  <!-- Top bar -->
+  <header class="eclass-top">
+    <button class="btn btn-ghost" id="leaveBtn" type="button"><span data-icon="arrow-left"></span> Leave class</button>
+    <div class="eclass-title">
+      <h1 id="rcTitle">Loading class…</h1>
+      <p id="rcSub">APALINK E-Class</p>
+    </div>
+    <span class="eclass-live" id="livePill">● Live</span>
+    <div style="margin-left:auto; display:flex; align-items:center; gap:10px">
+      <a class="icon-btn" id="bellBtn" href="notifications.html" aria-label="Notifications"
+         style="position:relative; background:#22304C; color:#E9EFF9; text-decoration:none">
+        <span data-icon="bell"></span>
+        <span id="bellBadge" hidden style="position:absolute; top:-4px; right:-4px; background:#C92A2A; color:#fff; font-size:.62rem; font-weight:800; border-radius:999px; min-width:18px; height:18px; display:grid; place-items:center; padding:0 4px;"></span>
+      </a>
+      <div class="top-user" id="topUser" title="Signed in" style="background:#1B2440; border-color:rgba(255,255,255,.14); box-shadow:none">
+        <span class="avatar" id="topAvatar" style="background:#2C6BDE;color:#fff">?</span>
+        <span class="top-user-meta"><b id="topUserName" style="color:#fff">…</b><small id="topUserRole" style="color:#9AA5BC">…</small></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="eclass-main">
+    <!-- Video stage -->
+    <section class="eclass-stage">
+      <div class="video-grid" id="videoGrid">
+        <div class="eclass-empty" id="waitingTile">Waiting for participants…</div>
+      </div>
+
+      <div class="eclass-controls" aria-label="Call controls">
+        <button class="icon-btn" id="micToggle" type="button" title="Turn microphone on/off" aria-pressed="true"><span data-icon="mic"></span></button>
+        <button class="icon-btn" id="camToggle" type="button" title="Turn camera on/off" aria-pressed="true"><span data-icon="video"></span></button>
+        <button class="icon-btn share" id="screenShare" type="button" title="Share your screen (teacher)" hidden><span data-icon="monitor"></span> Share screen</button>
+        <button class="icon-btn danger" id="endClassBtn" type="button" title="End this class (teacher/admin)" hidden><span data-icon="phone"></span></button>
+      </div>
+
+      <!-- End-class choice: for everyone, or just for me -->
+      <div class="eclass-modal" id="endModal" hidden>
+        <div class="eclass-modal-card">
+          <h2>End this class?</h2>
+          <p>Choose what should happen. Students always leave for themselves only — they can never end the class for everyone.</p>
+          <div class="eclass-modal-actions">
+            <button class="btn btn-danger" id="endForAllBtn" type="button"><span data-icon="phone"></span> End for everyone</button>
+            <button class="btn btn-ghost" id="endForMeBtn" type="button"><span data-icon="log-out"></span> End for me only — class keeps running</button>
+            <button class="btn btn-ghost" data-close="endModal" type="button">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="eclass-endcard" id="endCard" hidden>
+        <div class="card">
+          <h2>Class ended</h2>
+          <p id="endCardText">The teacher has ended this live class.</p>
+          <button class="btn btn-primary" id="endCardBack" type="button">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Side panel: people + chat -->
+    <aside class="eclass-side">
+      <div class="eclass-tabs" role="tablist">
+        <button class="active" role="tab" data-tab="people" type="button">People <span id="peopleCount">1</span></button>
+        <button role="tab" data-tab="chat" type="button">Chat &amp; Q&amp;A</button>
+      </div>
+
+      <div class="eclass-panel" id="panel-people">
+        <ul class="roster" id="rosterList"></ul>
+      </div>
+
+      <div class="eclass-panel" id="panel-chat" hidden>
+        <div class="eclass-chat" id="chatList" aria-live="polite"></div>
+        <form class="eclass-compose" id="chatForm">
+          <input id="chatInput" type="text" maxlength="1000" autocomplete="off"
+                 placeholder="Ask a question or comment…" aria-label="Message the class">
+          <button type="submit" id="chatSend">Send</button>
+        </form>
+      </div>
+    </aside>
+  </main>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/eclass-room.js"></script>
+</body>
+</html>

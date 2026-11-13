@@ -1,0 +1,21 @@
+{
+  "name": "apalink",
+  "version": "0.1.0",
+  "description": "APALINK — school notes platform (Milestone 1: auth foundation)",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "node server/app.js",
+    "dev": "node --env-file=.env --watch server/app.js",
+    "test": "node --env-file=.env tests/smoke.test.js",
+    "test:notes": "node --env-file=.env tests/notes.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.5.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

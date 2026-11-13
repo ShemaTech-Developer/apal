@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Management — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav active" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>User Management</h1>
+          <p>Every student account on APALINK — view, activate, reset or delete.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <!-- Toolbar: search + Add User -->
+      <div class="admin-toolbar">
+        <div class="admin-search">
+          <span data-icon="search"></span>
+          <input id="userSearch" type="search" autocomplete="off" placeholder="Search name, username, class…" aria-label="Search users">
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="notes-summary" id="userSummary"></div>
+
+      <!-- Users table (loaded from the server) -->
+      <div id="usersRoot">
+        <div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading users from the server…</div></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Floating profile card (click a row) -->
+  <div class="modal" id="profileModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2 id="pmTitle">Profile</h2><button class="btn btn-ghost" data-close="profileModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="pmBody"><div class="notes-loading"><span class="spinner"></span> Loading profile…</div></div>
+      <div class="modal-actions" id="pmActions" hidden>
+        <button class="btn btn-orange" id="pmToggle" type="button">Activate / deactivate</button>
+        <button class="btn btn-ghost" id="pmReset" type="button">Reset password</button>
+        <button class="btn btn-danger" id="pmDelete" type="button">Delete user</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add user modal -->
+  <div class="modal" id="addUserModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2>Add a student user</h2><button class="btn btn-ghost" data-close="addUserModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="auError" class="alert error" role="alert"></div>
+      <form id="addUserForm" novalidate>
+        <div class="row2">
+          <div class="field"><label for="auName">Full name *</label><input id="auName" name="name" type="text" required placeholder="e.g. UWASE Angel" autocomplete="off"></div>
+          <div class="field"><label for="auUsername">Username *</label><input id="auUsername" name="username" type="text" required pattern="[A-Za-z0-9_]{3,24}" placeholder="e.g. uwaseangel" autocomplete="off"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="auEmail">Email</label><input id="auEmail" name="email" type="email" placeholder="e.g. angel@example.com" autocomplete="off"></div>
+          <div class="field"><label for="auPassword">Temporary password *</label>
+            <div class="password-wrap">
+              <input id="auPassword" name="password" type="password" required minlength="6" autocomplete="new-password" placeholder="Min. 6 characters">
+              <button class="toggle" type="button" data-toggle-target="auPassword">Show</button>
+            </div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="auLevel">Academic level</label><select id="auLevel" name="level"><option value="">Choose…</option></select></div>
+          <div class="field"><label for="auSection">Class / section</label><select id="auSection" name="section"><option value="">Choose…</option></select></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="auClassName">Class name</label><input id="auClassName" name="className" placeholder="e.g. A" autocomplete="off"></div>
+          <div class="field"><label for="auDistrict">School district</label><select id="auDistrict" name="district"><option value="">Choose…</option></select></div>
+        </div>
+        <div class="field"><label for="auSchool">School name</label><input id="auSchool" name="schoolName" type="text" maxlength="120" placeholder="e.g. APADE High School" autocomplete="off"></div>
+        <p class="field-hint">The student signs in with this temporary password and should change it later.</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" data-close="addUserModal">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="auSubmit">Create user</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reset password modal -->
+  <div class="modal" id="resetModal">
+    <div class="modal-card">
+      <div class="modal-head"><h2>Reset password</h2><button class="btn btn-ghost" data-close="resetModal" type="button"><span data-icon="x"></span></button></div>
+      <div id="rpError" class="alert error" role="alert"></div>
+      <form id="resetForm" novalidate>
+        <div class="field"><label for="rpPassword">New temporary password *</label>
+          <div class="password-wrap">
+            <input id="rpPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Min. 6 characters">
+            <button class="toggle" type="button" data-toggle-target="rpPassword">Show</button>
+          </div>
+          <p class="field-hint" id="rpHint">The user signs in with this password afterwards.</p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" type="button" data-close="resetModal">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="rpSubmit">Save new password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtDate(s){ return s ? String(s).slice(0,10) : '—'; }
+  function fmtTime(s){ return s ? String(s).replace('T',' ').slice(0,16) : 'Never'; }
+  function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('') || '?'; }
+  function avatarHtml(u, cls){
+    var ini = esc(initials(u.fullName));
+    if(u.avatar) return '<span class="'+cls+'">'+ini+'<img src="/api/admin/avatars/'+encodeURIComponent(u.avatar)+'" alt="" onerror="this.parentNode.textContent=\''+ini+'\'"></span>';
+    return '<span class="'+cls+'">'+ini+'</span>';
+  }
+  function addressOf(u){
+    var a = [];
+    if(u.sector) a.push(u.sector + ' Sector');
+    if(u.district) a.push(u.district + ' District');
+    return a.length ? a.join(', ') : '—';
+  }
+
+  var pageAlert = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    pageAlert.textContent = msg || '';
+    pageAlert.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ pageAlert.className = 'alert'; }, 4000);
+  }
+
+  var users = [];          // last loaded list
+  var currentId = null;    // profile modal user
+  var busy = false;
+
+  var ADD_BTN = '<button class="btn btn-primary" id="addUserBtn" type="button">' + NN.icon('user-plus') + ' Add User</button>';
+
+  function load(){
+    if(busy) return;
+    busy = true;
+    var q = document.getElementById('userSearch').value.trim();
+    var root = document.getElementById('usersRoot');
+    root.innerHTML = '<div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading users from the server…</div></div>';
+
+    NN.api('/api/admin/users?role=student&q=' + encodeURIComponent(q)).then(function(r){
+      busy = false;
+      if(!r.ok){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('shield')+'</div><h3>Administrator login required</h3><p>Sign in as administrator to manage users.</p></div></div>';
+        document.getElementById('userSummary').innerHTML = '';
+        return;
+      }
+      users = (r.data && r.data.students) || [];
+
+      // Summary
+      var now = new Date();
+      var newThisMonth = users.filter(function(u){ return u.joined && new Date(u.joined) >= new Date(now.getFullYear(), now.getMonth(), 1); }).length;
+      var active = users.filter(function(u){ return u.active; }).length;
+      document.getElementById('userSummary').innerHTML =
+        '<div class="admin-stat"><div class="ic">'+NN.icon('users')+'</div><div><div class="n">'+users.length+'</div><div class="l">Total students</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('user-check')+'</div><div><div class="n">'+active+'</div><div class="l">Active</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('shield')+'</div><div><div class="n">'+(users.length-active)+'</div><div class="l">Inactive</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">'+NN.icon('user-plus')+'</div><div><div class="n">'+newThisMonth+'</div><div class="l">Joined this month</div></div></div>';
+
+      if(!users.length){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('users')+'</div><h3>'+(q ? 'No users match your search' : 'No student accounts yet')+'</h3><p>'+(q ? 'Try a different name or username.' : 'Use Add User to create the first account.')+'</p><div style="margin-top:12px">' + ADD_BTN + '</div></div></div>';
+        return;
+      }
+
+      var rows = users.map(function(u){
+        var cls = [u.level, u.section, u.className ? 'Class ' + u.className : ''].filter(Boolean).join(' · ');
+        return '<tr data-id="' + u.id + '">' +
+          '<td><div class="user-cell">' + avatarHtml(u, 'avatar') + '<span><b>' + esc(u.fullName) + '</b><small>@' + esc(u.username) + '</small></span></div></td>' +
+          '<td>' + (u.email ? esc(u.email) : '<span class="muted">—</span>') + '</td>' +
+          '<td>' + (cls ? esc(cls) : '<span class="muted">—</span>') + '</td>' +
+          '<td><b>' + esc(u.school || '—') + '</b>' + (u.district ? '<br><small class="muted">' + esc(u.district) + '</small>' : '') + '</td>' +
+          '<td>' + (u.active ? '<span class="badge ok">Active</span>' : '<span class="badge warn">Inactive</span>') + '</td>' +
+          '<td class="action-cell"><span class="notes-actions">' +
+            '<button class="btn btn-ghost" data-act="view:' + u.id + '" type="button">View</button>' +
+            (u.active
+              ? '<button class="btn btn-ghost" data-act="deactivate:' + u.id + '" type="button">Deactivate</button>'
+              : '<button class="btn btn-orange" data-act="activate:' + u.id + '" type="button">Activate</button>') +
+            '<button class="btn btn-danger" data-act="delete:' + u.id + '" type="button">Delete</button>' +
+          '</span></td>' +
+        '</tr>';
+      }).join('');
+
+      root.innerHTML =
+        '<div class="admin-card">' +
+          '<div class="card-head"><h2>All students</h2><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="badge">' + users.length + ' accounts</span>' + ADD_BTN + '</span></div>' +
+          '<div class="admin-table-wrap clickable-rows"><table class="admin-table">' +
+            '<thead><tr><th>User</th><th>Email</th><th>Class</th><th>School</th><th>Status</th><th>Actions</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table></div>' +
+        '</div>';
+
+      root.querySelectorAll('[data-act]').forEach(function(b){
+        b.addEventListener('click', function(e){
+          e.stopPropagation();
+          var p = b.dataset.act.split(':');
+          var id = Number(p[1]);
+          if(p[0] === 'view') openProfile(id);
+          else if(p[0] === 'activate') setActive(id, true);
+          else if(p[0] === 'deactivate') setActive(id, false);
+          else if(p[0] === 'delete') removeUser(id);
+        });
+      });
+      root.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
+        tr.addEventListener('click', function(){ openProfile(Number(tr.dataset.id)); });
+      });
+    }).catch(function(){
+      busy = false;
+      document.getElementById('usersRoot').innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">'+NN.icon('users')+'</div><h3>Could not reach the server</h3><p>Check your connection and try again.</p></div></div>';
+    });
+  }
+
+  // ---------- Actions ----------
+  function setActive(id, active){
+    NN.api('/api/admin/users/student/' + id + '/active', { method:'POST', body: JSON.stringify({ active: active }) }).then(function(r){
+      if(!r.ok){ flash((r.data && r.data.error) || 'Could not update the account.', 'error'); return; }
+      flash('Account ' + (active ? 'activated' : 'deactivated') + '.');
+      load();
+      if(currentId === id && document.getElementById('profileModal').classList.contains('show')) openProfile(id);
+    });
+  }
+  function removeUser(id){
+    var u = users.filter(function(x){ return x.id === id; })[0];
+    if(!window.confirm('Delete ' + (u ? u.fullName : 'this user') + ' permanently? This cannot be undone.')) return;
+    NN.api('/api/admin/users/student/' + id, { method:'DELETE' }).then(function(r){
+      if(!r.ok){ flash((r.data && r.data.error) || 'Cannot delete: this user still has linked records.', 'error'); return; }
+      flash('User deleted.');
+      closeModal('profileModal');
+      load();
+    });
+  }
+
+  // ---------- Floating profile card ----------
+  function openProfile(id){
+    currentId = id;
+    var modal = document.getElementById('profileModal');
+    var body = document.getElementById('pmBody');
+    var actions = document.getElementById('pmActions');
+    actions.hidden = true;
+    body.innerHTML = '<div class="notes-loading"><span class="spinner"></span> Loading profile…</div>';
+    modal.classList.add('show');
+
+    NN.api('/api/admin/users/student/' + id).then(function(r){
+      if(!r.ok || !r.data){
+        body.innerHTML = '<div class="notes-empty"><h3>Could not load this profile</h3><p>' + esc((r.data && r.data.error) || 'Try again.') + '</p></div>';
+        return;
+      }
+      var u = r.data;
+      document.getElementById('pmTitle').textContent = u.fullName;
+      body.innerHTML =
+        '<div class="profile-head">' +
+          avatarHtml(u, 'profile-pic') +
+          '<div><h3 class="pname">' + esc(u.fullName) + '</h3>' +
+          '<div class="pmeta"><span class="badge info">@' + esc(u.username) + '</span>' +
+          '<span class="badge">Student</span>' +
+          (u.active ? '<span class="badge ok">Active</span>' : '<span class="badge warn">Inactive</span>') + '</div></div>' +
+        '</div>' +
+        '<div class="info-grid">' +
+          '<div class="info-item"><small>Email</small><b>' + (u.email ? esc(u.email) : '—') + '</b></div>' +
+          '<div class="info-item"><small>Class</small><b>' + (u.className ? esc(u.className) : '—') + '</b></div>' +
+          '<div class="info-item"><small>Level</small><b>' + (u.level ? esc(u.level) : '—') + '</b></div>' +
+          '<div class="info-item"><small>Section</small><b>' + (u.section ? esc(u.section) : '—') + '</b></div>' +
+          '<div class="info-item"><small>School</small><b>' + (u.school ? esc(u.school) : '—') + '</b></div>' +
+          '<div class="info-item"><small>Address</small><b>' + esc(addressOf(u)) + '</b></div>' +
+          '<div class="info-item"><small>Joined</small><b>' + fmtDate(u.joined) + '</b></div>' +
+          '<div class="info-item"><small>Last login</small><b>' + fmtTime(u.lastLogin) + '</b></div>' +
+        '</div>' +
+        '<div class="profile-stats">' +
+          '<div class="pstat"><b>' + (u.downloads || 0) + '</b><small>Downloads</small></div>' +
+          '<div class="pstat"><b>' + (u.saved || 0) + '</b><small>Saved</small></div>' +
+          '<div class="pstat"><b>' + (u.messagesSent || 0) + '</b><small>Messages</small></div>' +
+        '</div>';
+
+      actions.hidden = false;
+      var tg = document.getElementById('pmToggle');
+      tg.textContent = u.active ? 'Deactivate account' : 'Activate account';
+      tg.className = 'btn ' + (u.active ? 'btn-ghost' : 'btn-orange');
+      tg.onclick = function(){ setActive(id, !u.active); };
+      document.getElementById('pmReset').onclick = function(){ openReset(id, u.fullName); };
+      document.getElementById('pmDelete').onclick = function(){ removeUser(id); };
+    });
+  }
+
+  // ---------- Modals ----------
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.addEventListener('click', function(e){
+    var c = e.target.closest('[data-close]');
+    if(c) closeModal(c.dataset.close);
+    if(e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('show');
+  });
+
+  // ---------- Add user ----------
+  var metaLoaded = false;
+  function loadMeta(){
+    if(metaLoaded) return; metaLoaded = true;
+    Promise.all([
+      NN.api('/api/auth/levels'),
+      NN.api('/api/auth/departments'),
+      NN.api('/api/auth/districts'),
+    ]).then(function(rs){
+      var levels = Array.isArray(rs[0].data) ? rs[0].data : [];
+      var deps = Array.isArray(rs[1].data) ? rs[1].data : [];
+      var dstrs = Array.isArray(rs[2].data) ? rs[2].data : [];
+      var lv = document.getElementById('auLevel');
+      levels.forEach(function(l){ lv.insertAdjacentHTML('beforeend', '<option value="'+esc(l.name)+'">'+esc(l.name)+'</option>'); });
+      var sec = document.getElementById('auSection');
+      deps.forEach(function(d){ sec.insertAdjacentHTML('beforeend', '<option value="'+esc(d.name)+'">'+esc(d.name)+'</option>'); });
+      var dis = document.getElementById('auDistrict');
+      dstrs.forEach(function(d){ dis.insertAdjacentHTML('beforeend', '<option value="'+esc(d)+'">'+esc(d)+'</option>'); });
+    });
+  }
+  document.getElementById('usersRoot').addEventListener('click', function(e){
+    if (!e.target.closest('#addUserBtn')) return;
+    loadMeta();
+    document.getElementById('auError').className = 'alert error';
+    document.getElementById('addUserModal').classList.add('show');
+  });
+  document.getElementById('addUserForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var f = e.target;
+    var schoolName = document.getElementById('auSchool').value.trim();
+    var errEl = document.getElementById('auError');
+    var btn = document.getElementById('auSubmit');
+    var el = f.elements;
+    if(!el.name.value.trim() || !el.username.value.trim() || !el.password.value){
+      errEl.textContent = 'Full name, username and password are required.'; errEl.className = 'alert error show'; return;
+    }
+    if(el.password.value.length < 6){
+      errEl.textContent = 'Password must be at least 6 characters.'; errEl.className = 'alert error show'; return;
+    }
+    btn.disabled = true;
+    NN.api('/api/admin/users', { method:'POST', body: JSON.stringify({
+      name: el.name.value.trim(),
+      username: el.username.value.trim(),
+      password: el.password.value,
+      email: el.email.value.trim(),
+      level: el.level.value || undefined,
+      section: el.section.value || undefined,
+      className: el.className.value.trim(),
+      district: el.district.value,
+      schoolName: schoolName,
+    })}).then(function(r){
+      btn.disabled = false;
+      if(!r.ok){ errEl.textContent = (r.data && r.data.error) || 'Could not create the user.'; errEl.className = 'alert error show'; return; }
+      closeModal('addUserModal');
+      f.reset();
+      flash('User created successfully.');
+      load();
+    }).catch(function(){ btn.disabled = false; errEl.textContent = 'Could not reach the server.'; errEl.className = 'alert error show'; });
+  });
+
+  // ---------- Reset password ----------
+  var resetTarget = null;
+  function openReset(id, name){
+    resetTarget = id;
+    document.getElementById('rpHint').textContent = name + ' will sign in with this password afterwards.';
+    document.getElementById('rpError').className = 'alert error';
+    document.getElementById('resetForm').reset();
+    document.getElementById('resetModal').classList.add('show');
+  }
+  document.getElementById('resetForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var pw = document.getElementById('rpPassword').value;
+    var errEl = document.getElementById('rpError');
+    if(pw.length < 6){ errEl.textContent = 'New password must be at least 6 characters.'; errEl.className = 'alert error show'; return; }
+    var btn = document.getElementById('rpSubmit');
+    btn.disabled = true;
+    NN.api('/api/admin/users/student/' + resetTarget + '/reset-password', { method:'POST', body: JSON.stringify({ newPassword: pw }) }).then(function(r){
+      btn.disabled = false;
+      if(!r.ok){ errEl.textContent = (r.data && r.data.error) || 'Could not reset the password.'; errEl.className = 'alert error show'; return; }
+      closeModal('resetModal');
+      flash('Password reset successfully.');
+    }).catch(function(){ btn.disabled = false; errEl.textContent = 'Could not reach the server.'; errEl.className = 'alert error show'; });
+  });
+
+  // ---------- Search (debounced) ----------
+  var searchT;
+  document.getElementById('userSearch').addEventListener('input', function(){
+    clearTimeout(searchT);
+    searchT = setTimeout(load, 300);
+  });
+
+  // ---------- Mobile sidebar toggle ----------
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Messages — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav active" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Messages</h1>
+          <p>Talk to any student or teacher — search everyone, or open a recent conversation.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <!-- Conversations (left) + chat thread (right) -->
+      <div class="admin-msg-grid">
+        <div class="admin-card msg-list-card">
+          <div class="card-head"><h2>Messages</h2><span class="badge" id="threadCount">0</span></div>
+          <div class="msg-pane-search">
+            <div class="admin-search">
+              <span data-icon="search"></span>
+              <input id="msgSearch" type="search" autocomplete="off" placeholder="Search ALL users by name or username…" aria-label="Search all users">
+            </div>
+            <p class="field-hint" id="searchHint" style="margin:8px 0 0">Type a name to find any student or teacher.</p>
+          </div>
+          <div class="thread-list" id="threadList">
+            <div class="notes-loading"><span class="spinner"></span> Loading conversations…</div>
+          </div>
+        </div>
+
+        <div class="admin-card admin-chat-card">
+          <div id="chatHead" class="admin-chat-head" hidden>
+            <span class="avatar" id="chatAvatar">?</span>
+            <div class="ch-main">
+              <b id="chatName">—</b>
+              <small id="chatMeta"></small>
+            </div>
+            <span class="badge info">Administration</span>
+          </div>
+          <div class="admin-chat" id="chatBody">
+            <div class="chat-empty">
+              <div class="file-ic"><span data-icon="message-square"></span></div>
+              <h3>No conversation open</h3>
+              <p>Click a conversation on the left, or search for any user by name to start messaging them.</p>
+            </div>
+          </div>
+          <form class="chat-composer" id="composer" hidden>
+            <textarea id="chatInput" rows="1" maxlength="4000" placeholder="Write a message to the school administration…" aria-label="Message"></textarea>
+            <button class="btn btn-primary" id="sendBtn" type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('') || '?'; }
+  function fmtDate(s){ return s ? String(s).slice(0,10) : '—'; }
+  function fmtTime(s){ return s ? String(s).replace('T',' ').slice(11,16) : ''; }
+  function avatarHtml(name, avatar, cls){
+    var ini = esc(initials(name));
+    if(avatar) return '<span class="'+cls+'">'+ini+'<img src="/api/admin/avatars/'+encodeURIComponent(avatar)+'" alt="" onerror="this.parentNode.textContent=\''+ini+'\'"></span>';
+    return '<span class="'+cls+'">'+ini+'</span>';
+  }
+  function shortWhen(s){
+    if(!s) return '';
+    var t = String(s).replace('T',' ').slice(0,16);
+    var day = t.slice(0,10), now = new Date();
+    var y = new Date(now.getTime() - 86400000);
+    var isToday = day === now.toISOString().slice(0,10);
+    var isYest = day === y.toISOString().slice(0,10);
+    if(isToday) return t.slice(11,16);
+    if(isYest) return 'Yesterday';
+    return day.slice(5);
+  }
+
+  var pageAlert = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    pageAlert.textContent = msg || '';
+    pageAlert.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ pageAlert.className = 'alert'; }, 4000);
+  }
+
+  var threads = [];        // existing conversations: {user, unread, lastMessage}
+  var results = [];        // search hits: flat users
+  var searching = false;
+  var active = null;       // {role, id, fullName, username, avatar}
+  var activeMsgs = [];
+  var lastMsgKey = '';
+  var busyList = false;
+
+  // ---------- Left pane: conversations vs search results ----------
+  function loadThreads(){
+    if(busyList || searching) return;
+    busyList = true;
+    NN.api('/api/admin/message-threads').then(function(r){
+      busyList = false;
+      threads = r.ok && Array.isArray(r.data) ? r.data : [];
+      renderList();
+    }).catch(function(){ busyList = false; });
+  }
+
+  function renderList(){
+    var list = document.getElementById('threadList');
+    document.getElementById('threadCount').textContent = threads.length;
+
+    if(searching){
+      if(!results.length){
+        list.innerHTML = '<div class="no-results"><b>No users match your search.</b><br>Try another name or username.</div>';
+        return;
+      }
+      var html = '<div class="thread-label">Search results — ' + results.length + ' user' + (results.length===1?'':'s') + '</div>';
+      html += results.map(function(u){
+        var known = threads.filter(function(t){ return t.user && t.user.role === u.role && t.user.id === u.id; })[0];
+        return '<button class="thread-item' + (active && active.role === u.role && active.id === u.id ? ' active' : '') + '" data-role="' + u.role + '" data-id="' + u.id + '" data-name="' + esc(u.fullName) + '" data-username="' + esc(u.username) + '" data-avatar="' + esc(u.avatar || '') + '" type="button">' +
+          avatarHtml(u.fullName, u.avatar, 'avatar') +
+          '<span class="thread-main"><b>' + esc(u.fullName) + '</b>' +
+          '<small><span class="role-dot ' + u.role + '"></span>' + (u.role === 'teacher' ? 'Teacher' : 'Student') + ' · @' + esc(u.username) + (known ? ' · 💬 chatted before' : '') + '</small></span>' +
+          (known && known.unread ? '<span class="unread-pill">' + known.unread + '</span>' : '') +
+        '</button>';
+      }).join('');
+      list.innerHTML = html;
+      bindItems();
+      return;
+    }
+
+    if(!threads.length){
+      list.innerHTML = '<div class="no-results"><b>No conversations yet.</b><br>Search for any student or teacher above to start messaging.</div>';
+      return;
+    }
+    var h = '<div class="thread-label">Conversations — ' + threads.length + '</div>';
+    h += threads.map(function(t){
+      var u = t.user || {};
+      var lm = t.lastMessage;
+      var preview = lm ? (lm.fromAdmin ? 'You: ' : '') + lm.body : 'No messages yet';
+      return '<button class="thread-item' + (active && active.role === u.role && active.id === u.id ? ' active' : '') + '" data-role="' + u.role + '" data-id="' + u.id + '" data-name="' + esc(u.fullName) + '" data-username="' + esc(u.username) + '" type="button">' +
+        avatarHtml(u.fullName, '', 'avatar') +
+        '<span class="thread-main"><b>' + esc(u.fullName) + '</b>' +
+        '<small><span class="role-dot ' + u.role + '"></span>' + (u.role === 'teacher' ? 'Teacher' : 'Student') + ' · ' + esc(preview.length > 46 ? preview.slice(0,46) + '…' : preview) + '</small></span>' +
+        (lm ? '<span class="thread-time">' + shortWhen(lm.createdAt) + '</span>' : '') +
+        (t.unread ? '<span class="unread-pill">' + t.unread + '</span>' : '') +
+      '</button>';
+    }).join('');
+    list.innerHTML = h;
+    bindItems();
+  }
+
+  function bindItems(){
+    document.querySelectorAll('#threadList .thread-item').forEach(function(b){
+      b.addEventListener('click', function(){
+        openThread({
+          role: b.dataset.role,
+          id: Number(b.dataset.id),
+          fullName: b.dataset.name,
+          username: b.dataset.username,
+          avatar: b.dataset.avatar || '',
+        });
+      });
+    });
+  }
+
+  // ---------- Search (debounced, server-side over ALL users) ----------
+  var searchT;
+  document.getElementById('msgSearch').addEventListener('input', function(){
+    var q = this.value.trim();
+    clearTimeout(searchT);
+    searchT = setTimeout(function(){
+      if(!q){
+        searching = false; results = [];
+        document.getElementById('searchHint').textContent = 'Type a name to find any student or teacher.';
+        loadThreads();
+        return;
+      }
+      searching = true;
+      document.getElementById('searchHint').textContent = 'Searching all users for "' + q + '"…';
+      NN.api('/api/admin/users?role=all&q=' + encodeURIComponent(q)).then(function(r){
+        if(!r.ok) return;
+        var d = r.data || {};
+        var flat = (d.students || []).concat(d.teachers || []);
+        // Heavier matches first: exact-ish name, then teachers/students by name
+        results = flat.slice(0, 40);
+        document.getElementById('searchHint').textContent = results.length
+          ? results.length + ' user' + (results.length===1?'':'s') + ' found — click one to open the chat.'
+          : 'No users match "' + q + '".';
+        renderList();
+      });
+    }, 300);
+  });
+
+  // ---------- Right pane: open a thread ----------
+  function openThread(u){
+    active = u;
+    var head = document.getElementById('chatHead');
+    var composer = document.getElementById('composer');
+    head.hidden = false; composer.hidden = false;
+    document.getElementById('chatName').textContent = u.fullName;
+    document.getElementById('chatMeta').innerHTML =
+      '<span class="role-dot ' + u.role + '"></span>' + (u.role === 'teacher' ? 'Teacher' : 'Student') +
+      ' · @' + esc(u.username || '') + ' · <span class="muted">messages go to their APALINK inbox</span>';
+    var av = document.getElementById('chatAvatar');
+    av.innerHTML = esc(initials(u.fullName));
+    if(u.avatar){
+      var img = new Image();
+      img.src = '/api/admin/avatars/' + encodeURIComponent(u.avatar);
+      img.alt = '';
+      img.onerror = function(){ av.innerHTML = esc(initials(u.fullName)); };
+      img.onload = function(){ av.innerHTML = ''; av.appendChild(img); };
+    }
+    document.getElementById('chatBody').innerHTML = '<div class="notes-loading"><span class="spinner"></span> Loading conversation…</div>';
+    renderList(); // highlight active
+    fetchThread(true);
+  }
+
+  function fetchThread(force){
+    if(!active) return;
+    NN.api('/api/admin/message-threads/' + active.role + '/' + active.id).then(function(r){
+      if(!r.ok){
+        document.getElementById('chatBody').innerHTML = '<div class="chat-empty"><h3>Could not open this conversation</h3><p>' + esc((r.data && r.data.error) || 'Try again.') + '</p></div>';
+        return;
+      }
+      activeMsgs = (r.data && r.data.messages) || [];
+      renderMessages(force);
+      loadThreads(); // refresh unread badges after opening (server marks them read)
+    }).catch(function(){
+      if(force) document.getElementById('chatBody').innerHTML = '<div class="chat-empty"><h3>Could not reach the server</h3><p>Check your connection and try again.</p></div>';
+    });
+  }
+
+  function renderMessages(force){
+    var body = document.getElementById('chatBody');
+    var atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
+    var key = activeMsgs.length + ':' + (activeMsgs.length ? activeMsgs[activeMsgs.length-1].id : 0);
+    if(!force && key === lastMsgKey) return;
+    lastMsgKey = key;
+
+    if(!activeMsgs.length){
+      body.innerHTML = '<div class="chat-empty"><h3>No messages yet</h3><p>Say hello to ' + esc(active.fullName) + ' — they will be notified on their APALINK account.</p></div>';
+      return;
+    }
+    var lastDay = '';
+    var html = activeMsgs.map(function(m){
+      var out = '';
+      var day = String(m.createdAt || '').slice(0, 10);
+      if(day !== lastDay){ lastDay = day; out += '<div class="chat-day">' + esc(day) + '</div>'; }
+      out += '<div class="bubble ' + (m.mine ? 'mine' : 'other') + '">' +
+        (m.mine ? '' : '<span class="bubble-author">' + esc(active.fullName) + '</span>') +
+        '<span class="bubble-text">' + esc(m.body) + '</span>' +
+        '<span class="stamp"><span class="msg-time">' + fmtTime(m.createdAt) + '</span>' +
+        (m.mine ? '<span class="seen-mark' + (m.seen ? ' seen' : '') + '">' + (m.seen ? '✓✓ Seen' : '✓ Sent') + '</span>' : '') +
+        '</span></div>';
+      return out;
+    }).join('');
+    body.innerHTML = html;
+    body.scrollTop = (force || atBottom) ? body.scrollHeight : body.scrollTop;
+  }
+
+  // ---------- Send ----------
+  document.getElementById('composer').addEventListener('submit', function(e){
+    e.preventDefault();
+    send();
+  });
+  document.getElementById('chatInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+  });
+  function send(){
+    var ta = document.getElementById('chatInput');
+    var text = ta.value.trim();
+    if(!text || !active) return;
+    var btn = document.getElementById('sendBtn');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    NN.api('/api/admin/message-threads/' + active.role + '/' + active.id, { method:'POST', body: JSON.stringify({ body: text }) }).then(function(r){
+      btn.disabled = false; btn.textContent = 'Send';
+      if(!r.ok){ flash((r.data && r.data.error) || 'Could not send the message.', 'error'); return; }
+      ta.value = '';
+      ta.style.height = '';
+      fetchThread(true);
+      flash('Message sent to ' + active.fullName + '.');
+    }).catch(function(){
+      btn.disabled = false; btn.textContent = 'Send';
+      flash('Could not reach the server.', 'error');
+    });
+  }
+  document.getElementById('chatInput').addEventListener('input', function(){
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 130) + 'px';
+  });
+
+  // ---------- Polling: keep the open thread + unread badges fresh ----------
+  setInterval(function(){ if(active) fetchThread(false); }, 4000);
+  setInterval(function(){ if(!searching) loadThreads(); }, 15000);
+
+  // ---------- Mobile sidebar toggle ----------
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  loadThreads();
+  </script>
+</body>
+</html>

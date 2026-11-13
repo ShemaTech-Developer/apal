@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav active" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Settings</h1>
+          <p>Manage your administrator account, profile picture, password and sessions.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <div class="admin-grid-2">
+        <!-- Profile picture -->
+        <section class="admin-card">
+          <div class="card-head"><h2>Profile picture</h2></div>
+          <div class="profile-head" style="margin-bottom:10px">
+            <div class="profile-pic" id="setAvatarWrap" style="border-radius:18px">
+              <img id="setAvatarImg" alt="Administrator profile picture" style="display:none">
+              <span id="setAvatarInitial">A</span>
+            </div>
+            <div>
+              <b id="setAvatarName" style="color:var(--navy)">Administrator</b>
+              <p class="muted" style="font-size:.86rem;margin:4px 0 0">This picture shows on the top-right of every admin page.</p>
+            </div>
+          </div>
+          <div id="avatarError" class="alert error" role="alert"></div>
+          <div class="field" style="margin-bottom:8px">
+            <label for="avatarFile">Change profile picture (PNG or JPG, max 5&nbsp;MB)</label>
+            <input id="avatarFile" type="file" accept=".png,.jpg,.jpeg">
+          </div>
+          <p class="field-hint">Leave it blank to keep the APADE crest. Pick a picture to replace it everywhere.</p>
+        </section>
+
+        <!-- Account details -->
+        <section class="admin-card">
+          <div class="card-head"><h2>Account details</h2></div>
+          <div id="profileError" class="alert error" role="alert"></div>
+          <form id="profileForm" novalidate>
+            <div class="field"><label for="fullName">Full name *</label><input id="fullName" name="fullName" type="text" required maxlength="120" autocomplete="name" placeholder="e.g. School Administrator"></div>
+            <div class="row2">
+              <div class="field"><label for="username">Username *</label><input id="username" name="username" type="text" required pattern="[A-Za-z0-9_]{3,24}" autocomplete="username" placeholder="admin"></div>
+              <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" placeholder="admin@apade.rw"></div>
+            </div>
+            <button class="btn btn-primary" type="submit" id="profileSubmit">Save changes</button>
+          </form>
+          <div class="info-grid" style="margin-top:14px">
+            <div class="info-item"><small>Role</small><b>Administrator</b></div>
+            <div class="info-item"><small>Member since</small><b id="setCreated">—</b></div>
+          </div>
+        </section>
+
+        <!-- Security -->
+        <section class="admin-card">
+          <div class="card-head"><h2>Password</h2></div>
+          <div id="pwError" class="alert error" role="alert"></div>
+          <form id="pwForm" novalidate>
+            <div class="field"><label for="currentPassword">Current password *</label><input id="currentPassword" name="currentPassword" type="password" required autocomplete="current-password" placeholder="Your current password"></div>
+            <div class="row2">
+              <div class="field"><label for="newPassword">New password *</label><input id="newPassword" name="newPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Min. 6 characters"></div>
+              <div class="field"><label for="confirmPassword">Confirm new password *</label><input id="confirmPassword" name="confirm" type="password" required autocomplete="new-password" placeholder="Repeat it"></div>
+            </div>
+            <button class="btn btn-primary" type="submit" id="pwSubmit">Change password</button>
+            <p class="field-hint" style="margin-top:8px">Changing the password signs out every other session automatically.</p>
+          </form>
+        </section>
+
+        <!-- Sessions -->
+        <section class="admin-card">
+          <div class="card-head"><h2>Sessions</h2><button class="btn btn-ghost" id="logoutAll" type="button">Log out everywhere</button></div>
+          <ul class="plain-list" id="sessionList"><li class="muted">Loading sessions…</li></ul>
+        </section>
+      </div>
+
+      <!-- Recent account activity -->
+      <section class="admin-card" style="margin-top:16px">
+        <div class="card-head"><h2>Recent account activity</h2><button class="btn btn-ghost" id="clearActivity" type="button">Clear my activity</button></div>
+        <ul class="plain-list" id="activityList"><li class="muted">Loading activity…</li></ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('') || '?'; }
+
+  var pageAlert = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    pageAlert.textContent = msg || '';
+    pageAlert.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ pageAlert.className = 'alert'; }, 4000);
+  }
+
+  var me = null;
+
+  function renderAvatar(){
+    var img = document.getElementById('setAvatarImg');
+    var ini = document.getElementById('setAvatarInitial');
+    var name = (me && (me.fullName || me.username)) || 'Administrator';
+    document.getElementById('setAvatarName').textContent = name;
+    if (me && me.avatar) {
+      img.src = '/api/settings/avatar/' + encodeURIComponent(me.avatar) + '?t=' + Date.now();
+      img.style.display = 'block';
+      ini.style.display = 'none';
+      img.onerror = function(){ img.style.display='none'; ini.style.display='grid'; ini.textContent = initials(name); };
+    } else {
+      img.style.display = 'none';
+      ini.style.display = 'grid';
+      ini.textContent = initials(name);
+    }
+  }
+
+  function loadMe(){
+    NN.api('/api/auth/me').then(function(r){
+      if (!r.ok || !r.data || !r.data.user) { flash('Could not load your account.', 'error'); return; }
+      me = r.data.user;
+      document.getElementById('fullName').value = me.fullName || '';
+      document.getElementById('username').value = me.username || '';
+      document.getElementById('email').value = me.email || '';
+      document.getElementById('setCreated').textContent = String(me.createdAt || '').slice(0, 10) || '—';
+      renderAvatar();
+      loadActivity();
+      loadSessions();
+    });
+  }
+
+  // ---------- Profile picture ----------
+  document.getElementById('avatarFile').addEventListener('change', function () {
+    var input = this;
+    var f = input.files && input.files[0];
+    var errEl = document.getElementById('avatarError');
+    errEl.className = 'alert error';
+    if (!f) return;
+    if (!/\.(png|jpe?g)$/i.test(f.name)) { errEl.textContent = 'Picture must be PNG or JPG.'; errEl.className = 'alert error show'; input.value=''; return; }
+    if (f.size > 5 * 1024 * 1024) { errEl.textContent = 'Picture must be under 5 MB.'; errEl.className = 'alert error show'; input.value=''; return; }
+    var fd = new FormData();
+    fd.append('file', f);
+    fetch('/api/settings/avatar', { method: 'POST', body: fd })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, data: j }; }); })
+      .then(function (r) {
+        if (!r.ok) { errEl.textContent = (r.data && r.data.error) || 'Upload failed.'; errEl.className = 'alert error show'; return; }
+        me.avatar = r.data.avatar;
+        renderAvatar();
+        // Keep the chip on the same page in sync too.
+        var chip = document.querySelector('#topUser .avatar');
+        if (chip) { var img = document.createElement('img'); img.src = '/api/settings/avatar/' + encodeURIComponent(me.avatar) + '?t=' + Date.now(); img.alt = me.fullName || 'Administrator'; chip.textContent = ''; chip.appendChild(img); }
+        flash('Profile picture updated.');
+        input.value = '';
+      })
+      .catch(function () { errEl.textContent = 'Could not reach the server.'; errEl.className = 'alert error show'; });
+  });
+
+  // ---------- Account details ----------
+  document.getElementById('profileForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var errEl = document.getElementById('profileError');
+    errEl.className = 'alert error';
+    var btn = document.getElementById('profileSubmit');
+    btn.disabled = true;
+    NN.api('/api/settings/profile', { method: 'POST', body: JSON.stringify({
+      fullName: document.getElementById('fullName').value,
+      username: document.getElementById('username').value,
+      email: document.getElementById('email').value,
+    }) }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { errEl.textContent = (r.data && r.data.error) || 'Update failed.'; errEl.className = 'alert error show'; return; }
+      flash('Account details saved.');
+      loadMe();
+    }).catch(function () { btn.disabled = false; errEl.textContent = 'Could not reach the server.'; errEl.className = 'alert error show'; });
+  });
+
+  // ---------- Password ----------
+  document.getElementById('pwForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = e.target;
+    var errEl = document.getElementById('pwError');
+    errEl.className = 'alert error';
+    var btn = document.getElementById('pwSubmit');
+    btn.disabled = true;
+    NN.api('/api/settings/change-password', { method: 'POST', body: JSON.stringify({
+      currentPassword: f.elements.currentPassword.value,
+      newPassword: f.elements.newPassword.value,
+      confirm: f.elements.confirm.value,
+    }) }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { errEl.textContent = (r.data && r.data.error) || 'Change failed.'; errEl.className = 'alert error show'; return; }
+      f.reset();
+      flash('Password changed — other sessions were signed out.');
+      loadSessions();
+    }).catch(function () { btn.disabled = false; errEl.textContent = 'Could not reach the server.'; errEl.className = 'alert error show'; });
+  });
+
+  // ---------- Sessions ----------
+  function loadSessions(){
+    NN.api('/api/settings/sessions').then(function(r){
+      var box = document.getElementById('sessionList');
+      if (!r.ok) { box.innerHTML = '<li class="muted">Could not load sessions.</li>'; return; }
+      var rows = (r.data && Array.isArray(r.data.sessions)) ? r.data.sessions : [];
+      box.innerHTML = rows.length ? rows.map(function(s){
+        return '<li style="display:flex;justify-content:space-between;gap:12px;align-items:center">' +
+          '<span><b>' + (s.current ? 'This device' : 'Another session') + '</b><br><small class="muted">' + (s.current ? 'the session you are using now' : 'no longer active after “Log out everywhere”') + '</small></span>' +
+          (s.current ? '<span class="badge ok">Current</span>' : '<span class="badge info">Active</span>') +
+        '</li>';
+      }).join('') : '<li class="muted">Only this session.</li>';
+    }).catch(function(){ document.getElementById('sessionList').innerHTML = '<li class="muted">Could not load sessions.</li>'; });
+  }
+  document.getElementById('logoutAll').addEventListener('click', function(){
+    if (!window.confirm('Sign out of all other sessions? This device stays signed in.')) return;
+    NN.api('/api/settings/logout-all', { method: 'POST' }).then(function(r){
+      flash(r.ok ? 'Other sessions signed out.' : 'Could not sign out other sessions.', r.ok ? 'success' : 'error');
+      loadSessions();
+    });
+  });
+
+  // ---------- Recent activity ----------
+  function loadActivity(){
+    NN.api('/api/settings/activity').then(function(r){
+      var box = document.getElementById('activityList');
+      if (!r.ok) { box.innerHTML = '<li class="muted">Could not load your activity.</li>'; return; }
+      var rows = (r.data && Array.isArray(r.data.activity)) ? r.data.activity.slice(0, 12) : [];
+      box.innerHTML = rows.length ? rows.map(function(a){
+        return '<li style="display:flex;justify-content:space-between;gap:12px;align-items:center">' +
+          '<span><b>' + esc(a.action) + '</b><br><small class="muted">' + esc(a.details || '') + ' · ' + esc(String(a.createdAt || '').slice(0,16)) + '</small></span>' +
+          '<button class="btn btn-ghost" data-hide="' + a.id + '" type="button">Hide</button>' +
+        '</li>';
+      }).join('') : '<li class="muted">No recent activity.</li>';
+      box.querySelectorAll('[data-hide]').forEach(function(b){
+        b.addEventListener('click', function(){
+          NN.api('/api/settings/activity/' + b.dataset.hide, { method: 'DELETE' }).then(function(rr){
+            if (rr.ok) loadActivity(); else flash('Could not hide the entry.', 'error');
+          });
+        });
+      });
+    }).catch(function(){ document.getElementById('activityList').innerHTML = '<li class="muted">Could not load your activity.</li>'; });
+  }
+  document.getElementById('clearActivity').addEventListener('click', function(){
+    if (!window.confirm('Hide all of your activity entries? The audit trail stays intact for other admins.')) return;
+    NN.api('/api/settings/activity', { method: 'DELETE' }).then(function(r){
+      flash(r.ok ? 'Your activity was cleared.' : 'Could not clear activity.', r.ok ? 'success' : 'error');
+      if (r.ok) loadActivity();
+    });
+  });
+
+  // ---------- Mobile sidebar toggle ----------
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  loadMe();
+  </script>
+</body>
+</html>

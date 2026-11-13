@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timetable Management — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body" data-view="a-timetable">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav active" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Timetable Management</h1>
+          <p>One official timetable per class — upload a file, build entries in the weekly editor, then publish.</p>
+        </div>
+        <a class="btn btn-ghost" href="reports.html"><span data-icon="shield"></span> Message reports</a>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <section class="panel"><h2>Upload a timetable</h2>
+        <div id="uploadError" class="alert error" role="alert"></div>
+        <form id="uploadForm" class="form-card" enctype="multipart/form-data">
+          <div class="form-grid">
+            <div class="field full"><label>Timetable title *</label><input name="title" required placeholder="e.g. Level 4 Math-S1 Class A — Term 1"></div>
+            <div class="field"><label>Department *</label><select id="department" name="departmentId" required><option value="">Choose…</option></select></div>
+            <div class="field"><label>Academic level *</label><select id="level" name="levelId" required><option value="">Choose…</option></select></div>
+            <div class="field"><label>Class (blank = whole level)</label><input name="className" placeholder="e.g. A"></div>
+            <div class="field"><label>Term / academic period</label><select id="period" name="periodId"><option value="">None</option></select></div>
+            <div class="field full"><label>Description</label><textarea name="description" rows="2" maxlength="1000"></textarea></div>
+            <div class="field full"><label>File (PDF/PNG/JPG — optional if you build entries)</label><input name="file" type="file" accept=".pdf,.png,.jpg,.jpeg"></div>
+          </div>
+          <button class="btn btn-primary" type="submit">Create timetable</button>
+        </form>
+        <form id="newPeriodForm" style="margin-top:12px;display:flex;gap:8px"><input id="newPeriodName" placeholder="New term, e.g. 2026 Term 3" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px"><button class="btn btn-ghost" type="submit">+ Add term</button></form>
+      </section>
+
+      <section class="panel"><h2>All timetables</h2><ul class="plain-list" id="docList"></ul></section>
+
+      <section class="panel"><h2 id="editTitle">Weekly editor — select a timetable above</h2>
+        <div id="docActions" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
+        <input type="hidden" id="docId">
+        <div id="entryError" class="alert error" role="alert"></div>
+        <form id="entryForm" class="form-card" style="margin-bottom:18px">
+          <div class="form-grid">
+            <div class="field"><label>Day</label><select name="dayOfWeek"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="0">Sunday</option><option value="6">Saturday</option></select></div>
+            <div class="field"><label>Subject (blank for break)</label><input name="subject" placeholder="e.g. Mathematics"></div>
+            <div class="field"><label>Start</label><input name="startTime" type="time" value="08:00" required></div>
+            <div class="field"><label>End</label><input name="endTime" type="time" value="09:00" required></div>
+            <div class="field"><label>Teacher</label><select name="teacherId" id="entryTeacher"><option value="">—</option></select></div>
+            <div class="field"><label>Classroom</label><input name="classroom" placeholder="e.g. Room 12"></div>
+            <div class="field"><label>Or teacher name (free text fallback)</label><input name="teacherName" placeholder="e.g. Mr. Habimana"></div>
+            <label class="check"><input type="checkbox" name="isBreak"> Break period</label>
+            <label class="check"><input type="checkbox" id="override"> I understand the conflict warnings and want to save anyway</label>
+          </div>
+          <button class="btn btn-primary" type="submit">Add lesson</button>
+        </form>
+        <div id="entriesGrid"></div>
+        <h3>Lessons</h3>
+        <ul class="plain-list" id="entriesList"></ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script src="../../js/timetable.js"></script>
+  <script>
+  // Mobile sidebar toggle
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+  </script>
+</body>
+</html>

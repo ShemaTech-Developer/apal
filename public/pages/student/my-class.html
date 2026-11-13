@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Class — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css"><link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body data-view="s-my-class">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+      <div class="dash-head"><div><h1 id="classHeading">My Class</h1><p class="welcome-sub" id="classSub">Loading your class…</p></div></div>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <!-- Live e-class banner (only when the teacher is live) -->
+      <div id="liveCard" hidden>
+        <div class="eclass-live-banner">
+          <div class="eclass-live-dot"></div>
+          <div style="flex:1;min-width:0">
+            <b>LIVE NOW — <span id="liveTitle">Live class</span></b>
+            <p class="muted" style="margin:2px 0 0" id="liveBy">Your teacher is live</p>
+          </div>
+          <a class="btn btn-orange" id="joinLiveBtn" href="#"><span data-icon="presentation"></span> Join Class</a>
+        </div>
+      </div>
+
+      <!-- Class announcements -->
+      <section class="panel" style="margin-top:16px">
+        <h2><span data-icon="megaphone"></span> Announcements for my class</h2>
+        <ul class="plain-list" id="classAnnList"><li class="muted">Loading…</li></ul>
+      </section>
+
+      <!-- Quick facts -->
+      <section class="panel" style="margin-top:16px">
+        <h2><span data-icon="school"></span> Class details</h2>
+        <div class="info-grid" id="classFacts"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtWhen(s){ return s ? String(s).replace('T',' ').slice(0,16) : '—'; }
+
+  var meCls = null;
+
+  function loadMe(){
+    return NN.api('/api/auth/me').then(function (r) {
+      if (!r.ok || !r.data || !r.data.user) throw new Error('me');
+      var u = r.data.user;
+      meCls = u;
+      var dept = u.sectionName || 'Department —';
+      var level = u.levelName || 'Level —';
+      var cls = u.className || '—';
+      document.getElementById('classHeading').textContent = 'My Class';
+      document.getElementById('classSub').textContent = dept + ' · ' + level + ' · Class ' + cls;
+      document.getElementById('classFacts').innerHTML =
+        '<div class="info-item"><small>Department</small><b>' + esc(dept) + '</b></div>' +
+        '<div class="info-item"><small>Level</small><b>' + esc(level) + '</b></div>' +
+        '<div class="info-item"><small>Class</small><b>' + esc(cls) + '</b></div>' +
+        '<div class="info-item"><small>School</small><b>' + esc(u.schoolName || '—') + '</b></div>';
+      return u;
+    });
+  }
+
+  function loadLive(){
+    NN.api('/api/eclasses/live').then(function (r) {
+      var rows = (r.ok && Array.isArray(r.data)) ? r.data : [];
+      var box = document.getElementById('liveCard');
+      if (!rows.length) { box.hidden = true; return; }
+      var e = rows[0];
+      document.getElementById('liveTitle').textContent = e.title;
+      document.getElementById('liveBy').textContent = (e.subject ? e.subject + ' · ' : '') + e.teacherName + ' is teaching now' +
+        (e.startTime ? ' · 🕒 ' + e.startTime + '–' + (e.endTime || '…') : '');
+      document.getElementById('joinLiveBtn').href = '../eclass-room.html?id=' + e.id;
+      box.hidden = false;
+    }).catch(function () {});
+  }
+
+  function loadAnnouncements(){
+    NN.api('/api/announcements').then(function (r) {
+      var rows = (r.ok && Array.isArray(r.data)) ? r.data : [];
+      var list = document.getElementById('classAnnList');
+      if (!rows.length) {
+        list.innerHTML = '<li class="muted">Nothing for your class yet — announcements your class needs will appear here.</li>';
+        return;
+      }
+      list.innerHTML = rows.slice(0, 30).map(function (a) {
+        var tag = a.className
+          ? '<span class="badge info">My class</span>'
+          : (a.schoolId ? '<span class="badge">School</span>' : '<span class="badge pin">All schools</span>');
+        var cat = a.category && a.category !== 'general' ? '<span class="badge">' + esc(a.category) + '</span>' : '';
+        return '<li><span style="min-width:0"><b>' + esc(a.title) + '</b><br><small class="muted">' +
+          esc(a.body || '').slice(0, 220) + (a.body && a.body.length > 220 ? '…' : '') + '<br>' + fmtWhen(a.createdAt) + '</small></span>' +
+          '<span style="display:flex;gap:6px;align-items:center;flex:none">' + tag + cat + '</span></li>';
+      }).join('');
+    }).catch(function () { document.getElementById('classAnnList').innerHTML = '<li class="muted">Could not load announcements.</li>'; });
+  }
+
+  loadMe().then(function () { loadLive(); loadAnnouncements(); });
+  // Refresh live status every 30s
+  setInterval(loadLive, 30000);
+  </script>
+</body>
+</html>

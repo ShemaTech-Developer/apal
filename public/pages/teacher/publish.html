@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publish Note — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css">
+</head>
+<body data-view="t-publish">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head"><div><h1><span data-icon="upload"></span> Publish a Note</h1><p class="welcome-sub">Students in the chosen section &amp; level (and class, if set) will see it.</p></div></div>
+      <section class="panel" style="max-width:760px">
+        <div id="publishError" class="alert error" role="alert"></div>
+        <div id="publishOk" class="alert success" role="status"></div>
+        <form id="publishForm" class="form-card" enctype="multipart/form-data">
+          <div class="form-grid">
+            <div class="field full"><label>Note title *</label><input name="title" required placeholder="e.g. Networking — OSI Model"></div>
+            <div class="field"><label>Section / department *</label><select id="department" name="departmentId" required><option value="">Choose…</option></select></div>
+            <div class="field"><label>Academic level *</label><select id="level" name="levelId" required><option value="">Choose…</option></select></div>
+            <div class="field"><label>Subject / category</label><input name="subject" placeholder="e.g. Networking"></div>
+            <div class="field"><label>Class (blank = whole level)</label><input name="className" placeholder="e.g. A"></div>
+            <div class="field full"><label>Description</label><textarea name="description" rows="3" maxlength="1000" placeholder="Short summary for students"></textarea></div>
+            <div class="field full"><label>File * (PDF, DOCX, PPTX, TXT, MD, images… Max 25 MB)</label><input name="file" type="file" required></div>
+          </div>
+          <button class="btn btn-primary" type="submit">Publish Note</button>
+        </form>
+      </section>
+
+    </main>
+  </div>
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+</body>
+</html>

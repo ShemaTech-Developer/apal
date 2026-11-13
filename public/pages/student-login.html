@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — APALINK · APADE High School</title>
+  <meta name="description" content="Sign in to APALINK — students and teachers use one secure page; administrators have a discreet access section.">
+  <link rel="icon" type="image/svg+xml" href="../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/auth.css"><link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand brand-apalink" href="../index.html">
+      <img class="brand-crest" src="../assets/logo/apalink-mark.png" alt="APALink logo">
+      <span class="brand-text"><b>APALINK</b><small>APADE HIGH SCHOOL</small></span>
+    </a>
+    <span class="tag">Sign in</span>
+  </header>
+
+  <div class="auth-split">
+    <aside class="photo-panel" aria-label="APADE High School campus">
+      <div class="slide active"><img src="../assets/images/student1.jpg" alt="APADE students working on a robotics project"></div>
+      <div class="slide"><img src="../assets/images/student2.jpg" alt="APADE students reading in the school library"></div>
+      <div class="slide"><img src="../assets/images/student3.jpg" alt="An APADE student leading the school assembly"></div>
+      <div class="slide"><img src="../assets/images/teacher1.jpg" alt="Teachers guiding an APADE class"></div>
+      <div class="shade"></div>
+      <div class="photo-copy">
+        <h2>Welcome to APALINK</h2>
+        <p>Connecting Minds. Empowering Learning. — your notes, announcements and messages in one place.</p>
+      </div>
+      <div class="dots" role="tablist" aria-label="Photos"></div>
+    </aside>
+
+    <section class="form-panel">
+      <div class="form-card">
+        <a class="brand brand-apalink" href="../index.html">
+          <img class="brand-crest" src="../assets/logo/apalink-mark.png" alt="APALink logo">
+          <span class="brand-text"><b>APALINK</b><small>APADE HIGH SCHOOL</small></span>
+        </a>
+        <h1>Sign in</h1>
+        <p class="sub">Students and teachers share one sign-in. Choose your access below.</p>
+
+        <div class="auth-tabs" role="tablist" aria-label="Sign-in type">
+          <button type="button" class="auth-tab active" id="tabStudent" role="tab" aria-selected="true" data-mode="student">
+            <span data-icon="graduation-cap" aria-hidden="true"></span> Student
+          </button>
+          <button type="button" class="auth-tab" id="tabTeacher" role="tab" aria-selected="false" data-mode="teacher">
+            <span data-icon="book-open" aria-hidden="true"></span> Teacher
+          </button>
+        </div>
+
+        <div id="loginError" class="alert error" role="alert"></div>
+        <form id="unifiedLoginForm" novalidate>
+          <div class="field">
+            <label for="identifier">Username or email</label>
+            <input id="identifier" name="identifier" type="text" autocomplete="username" required placeholder="e.g. lucky123">
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Your password">
+              <button class="toggle" type="button" data-toggle-target="password">Show</button>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" name="remember"> Remember me on this device</label>
+          <button class="btn btn-primary btn-block" type="submit" id="unifiedSubmit">Log in as student</button>
+        </form>
+
+        <!-- Teacher school-code step (shown only when the server asks for it) -->
+        <div id="teacherCodeStep" class="access-inline" hidden>
+          <p class="eyebrow">Teacher access</p>
+          <h2 class="access-inline-title">Enter the school access code</h2>
+          <p class="muted access-inline-sub">One check confirms you teach at this school. The code is verified on the server.</p>
+          <div id="verifyError" class="alert error" role="alert"></div>
+          <form id="unifiedVerifyForm" novalidate>
+            <div class="field">
+              <label for="teacherCode">School access code</label>
+              <div class="password-wrap">
+                <input id="teacherCode" name="code" type="password" autocomplete="off" required placeholder="School access code">
+                <button class="toggle" type="button" data-toggle-target="teacherCode">Show</button>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Verify and continue</button>
+          </form>
+        </div>
+
+        <!-- New here? Students can create their own account (teachers are invited by the administrator) -->
+        <a class="btn btn-ghost btn-block auth-create" id="createStudentBtn" href="student-register.html">
+          <span data-icon="user-plus" aria-hidden="true"></span> New student? Create an account
+        </a>
+
+        <!-- Discreet administrator access -->
+        <div class="admin-access" id="adminAccess">
+          <button type="button" class="admin-access-toggle" id="adminAccessToggle" aria-expanded="false" aria-controls="adminAccessBody">
+            <span data-icon="shield" aria-hidden="true"></span>
+            Administrator access
+            <span class="admin-access-chevron" data-icon="chevron-down" aria-hidden="true"></span>
+          </button>
+          <div class="admin-access-body" id="adminAccessBody" hidden>
+            <p class="muted admin-access-note">Authorized school administrators only. Both passwords are checked on the server.</p>
+            <ol class="wizard-steps" id="adminSteps" aria-label="Sign-in steps">
+              <li class="active current" data-step="1"><span>1</span><div><b>School password</b><small>Shared school access</small></div></li>
+              <li data-step="2"><span>2</span><div><b>Administrator password</b><small>Your admin account</small></div></li>
+            </ol>
+            <div id="adminSchoolError" class="alert error" role="alert"></div>
+            <form id="adminSchoolForm" novalidate>
+              <div class="field">
+                <label for="admSchoolCode">School access password *</label>
+                <div class="password-wrap">
+                  <input id="admSchoolCode" name="code" type="password" autocomplete="off" required placeholder="Enter the school password">
+                  <button class="toggle" type="button" data-toggle-target="admSchoolCode">Show</button>
+                </div>
+                <p class="field-hint">The same school password teachers use. It is never stored in the browser.</p>
+              </div>
+              <button class="btn btn-dark btn-block" type="submit">Continue to administrator password</button>
+            </form>
+            <div id="adminError" class="alert error" role="alert"></div>
+            <form id="adminLoginForm" novalidate hidden>
+              <p class="wizard-note">✓ School password confirmed. Now sign in with your administrator account.</p>
+              <div class="field">
+                <label for="admIdentifier">Username or email *</label>
+                <input id="admIdentifier" name="identifier" type="text" autocomplete="username" required placeholder="admin">
+              </div>
+              <div class="field">
+                <label for="admPassword">Administrator password *</label>
+                <div class="password-wrap">
+                  <input id="admPassword" name="password" type="password" autocomplete="current-password" required>
+                  <button class="toggle" type="button" data-toggle-target="admPassword">Show</button>
+                </div>
+              </div>
+              <button class="btn btn-dark btn-block" type="submit">Sign in as administrator</button>
+              <button class="btn btn-ghost btn-block" type="button" id="adminBackStep" style="margin-top:10px">← Use a different school password</button>
+            </form>
+          </div>
+        </div>
+
+        <a class="back-link" href="../index.html">← Back to home</a>
+      </div>
+    </section>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/image-slider.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+  // The create-account button is for students only: hide it while the Teacher tab is active.
+  (function(){
+    var btn = document.getElementById('createStudentBtn');
+    var tabStudent = document.getElementById('tabStudent');
+    var tabTeacher = document.getElementById('tabTeacher');
+    if(!btn || !tabStudent || !tabTeacher) return;
+    function sync(){ btn.hidden = tabTeacher.classList.contains('active'); }
+    tabStudent.addEventListener('click', function(){ setTimeout(sync, 0); });
+    tabTeacher.addEventListener('click', function(){ setTimeout(sync, 0); });
+    sync();
+  })();
+  </script>
+  <script src="../js/clerk.js"></script>
+</body>
+</html>

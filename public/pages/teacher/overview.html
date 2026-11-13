@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview — APALINK</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css"><link rel="stylesheet" href="../../css/auth.css"><link rel="stylesheet" href="../../css/dashboard.css"><link rel="stylesheet" href="../../css/responsive.css">
+</head>
+<body data-view="t-overview">
+  <div class="mobile-bar">
+    <button id="burger" class="btn btn-ghost" aria-label="Menu"><span data-icon="menu"></span></button>
+    <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+  </div>
+  <div id="overlay" class="overlay"></div>
+  <div class="dash">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="../../index.html" style="margin-bottom:12px"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav id="sideNav"></nav>
+    </aside>
+    <main class="dash-main">
+
+      <div class="dash-head"><div><h1 id="welcomeMsg">Welcome</h1><p class="welcome-sub" id="welcomeSub">Loading…</p></div>
+        <a class="btn btn-primary" href="publish.html"><span data-icon="upload"></span> Publish a Note</a></div>
+      <section class="quick-actions" aria-label="Quick actions">
+        <a class="quick-card" href="publish.html"><span class="qi" aria-hidden="true" data-icon="upload"></span><span class="quick-copy"><b>Publish a note</b><small>Share learning material with students</small></span><span class="quick-go" aria-hidden="true">→</span></a>
+        <a class="quick-card" href="my-notes.html"><span class="qi" aria-hidden="true" data-icon="file-text"></span><span class="quick-copy"><b>Manage my notes</b><small>Edit, publish or unpublish your notes</small></span><span class="quick-go" aria-hidden="true">→</span></a>
+        <a class="quick-card" href="schedule.html"><span class="qi" aria-hidden="true" data-icon="calendar"></span><span class="quick-copy"><b>Teaching schedule</b><small>See where you teach this week</small></span><span class="quick-go" aria-hidden="true">→</span></a>
+        <a class="quick-card" href="../announcements.html"><span class="qi" aria-hidden="true" data-icon="megaphone"></span><span class="quick-copy"><b>School announcements</b><small>Updates for the school where you teach</small></span><span class="quick-go" aria-hidden="true">→</span></a>
+      </section>
+      <section class="stats4">
+        <article class="stat-card"><div class="ic" data-icon="file-text"></div><div class="n" id="statNotes">—</div><div class="l">My notes</div></article>
+        <article class="stat-card"><div class="ic" data-icon="circle-check"></div><div class="n" id="statPublished">—</div><div class="l">Published</div></article>
+        <article class="stat-card"><div class="ic" data-icon="download"></div><div class="n" id="statDownloads">—</div><div class="l">Downloads</div></article>
+      </section>
+      <section class="panel"><h2><span data-icon="megaphone"></span> School announcements</h2><ul class="notif-list" id="announcementPreview"></ul></section>
+      <section class="panel"><h2>Your latest notes</h2><div class="notes-grid" id="recentGrid"></div></section>
+
+    </main>
+  </div>
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/dashboard.js"></script>
+</body>
+</html>

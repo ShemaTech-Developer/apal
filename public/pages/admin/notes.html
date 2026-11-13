@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notes &amp; Files — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <!-- Same navigation sidebar as the admin console -->
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav active" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Notes &amp; Files</h1>
+          <p>Every note and file uploaded by teachers — publish, unpublish or delete.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <!-- Summary cards -->
+      <div class="notes-summary" id="notesSummary"></div>
+
+      <!-- Notes table (loaded from the server) -->
+      <div id="adminNotesRoot">
+        <div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading notes from the server…</div></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtSize(n){ n=Number(n||0); if(!n) return '—'; if(n<1024) return n+' B'; if(n<1024*1024) return (n/1024).toFixed(1)+' KB'; return (n/1024/1024).toFixed(1)+' MB'; }
+  function fmtDate(s){ if(!s) return '—'; return String(s).slice(0,10); }
+  function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('') || '?'; }
+
+  var busy = false;
+
+  function load(){
+    if (busy) return;
+    busy = true;
+    var root = document.getElementById('adminNotesRoot');
+    root.innerHTML = '<div class="admin-card"><div class="notes-loading"><span class="spinner"></span> Loading notes from the server…</div></div>';
+
+    NN.api('/api/admin/notes').then(function(r){
+      busy = false;
+      // The API returns a plain array of notes (fallback: {notes:[…]})
+      var notes = Array.isArray(r.data) ? r.data : (r.data && Array.isArray(r.data.notes) ? r.data.notes : []);
+
+      if(!r.ok){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">' + NN.icon('shield') + '</div><h3>Administrator login required</h3><p>Sign in as administrator to manage notes and files.</p></div></div>';
+        document.getElementById('notesSummary').innerHTML = '';
+        return;
+      }
+
+      // Summary
+      var total = notes.length;
+      var published = notes.filter(function(n){ return n.isPublished; }).length;
+      var drafts = total - published;
+      var downloads = notes.reduce(function(s,n){ return s + (Number(n.downloads)||0); }, 0);
+      document.getElementById('notesSummary').innerHTML =
+        '<div class="admin-stat"><div class="ic">' + NN.icon('file-text') + '</div><div><div class="n">' + total + '</div><div class="l">Total notes</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">' + NN.icon('upload') + '</div><div><div class="n">' + published + '</div><div class="l">Published</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">' + NN.icon('shield') + '</div><div><div class="n">' + drafts + '</div><div class="l">Drafts</div></div></div>' +
+        '<div class="admin-stat"><div class="ic">' + NN.icon('download') + '</div><div><div class="n">' + downloads + '</div><div class="l">Total downloads</div></div></div>';
+
+      if(!total){
+        root.innerHTML = '<div class="admin-card"><div class="notes-empty"><div class="file-ic">' + NN.icon('file-text') + '</div><h3>No notes uploaded yet</h3><p>Notes and files uploaded by teachers will appear here.</p></div></div>';
+        return;
+      }
+
+      var rows = notes.map(function(n){
+        var pub = n.teacher || n.teacher_name || 'Unknown';
+        return '<tr>' +
+          '<td><div class="notes-title"><span class="file-ic">' + NN.icon('file-text') + '</span><span><b>' + esc(n.title || 'Untitled') + '</b><small>' + esc(n.subject || n.level || '') + (n.department ? ' · ' + esc(n.department) : '') + ' · ' + fmtDate(n.createdAt) + '</small></span></div></td>' +
+          '<td><span class="publisher"><span class="avatar">' + esc(initials(pub)) + '</span>' + esc(pub) + '</span></td>' +
+          '<td>' + (n.fileName ? '<span title="' + esc(n.fileName) + '">' + esc(n.fileName) + '</span>' : '<span class="muted">—</span>') + '</td>' +
+          '<td>' + fmtSize(n.fileSize) + '</td>' +
+          '<td><span class="dl-chip">' + NN.icon('download') + ' ' + (Number(n.downloads)||0) + '</span></td>' +
+          '<td>' + (n.isPublished ? '<span class="badge ok">Published</span>' : '<span class="badge">Draft</span>') + '</td>' +
+          '<td class="action-cell"><span class="notes-actions">' +
+            (n.isPublished
+              ? '<button class="btn btn-orange" data-act="unpublish:' + n.id + '" type="button">Unpublish</button>'
+              : '<button class="btn btn-success" data-act="publish:' + n.id + '" type="button">Publish</button>') +
+            '<button class="btn btn-danger" data-act="delete:' + n.id + '" type="button">Delete</button>' +
+          '</span></td>' +
+        '</tr>';
+      }).join('');
+
+      root.innerHTML =
+        '<div class="admin-card">' +
+          '<div class="card-head"><h2>All uploaded notes &amp; files</h2><span class="badge">' + total + ' items</span></div>' +
+          '<div class="admin-table-wrap"><table class="admin-table">' +
+            '<thead><tr><th>Note</th><th>Publisher</th><th>File</th><th>Size</th><th>Downloads</th><th>Status</th><th>Actions</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table></div>' +
+        '</div>';
+
+      root.querySelectorAll('[data-act]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var p = b.dataset.act.split(':');
+          var id = p[1];
+          b.disabled = true;
+
+          if(p[0] === 'publish' || p[0] === 'unpublish'){
+            NN.api('/api/admin/notes/' + id + '/publish', {
+              method: 'POST',
+              body: JSON.stringify({ published: p[0] === 'publish' })
+            }).then(function(){ busy = false; load(); })
+              .catch(function(){ b.disabled = false; });
+          } else if(p[0] === 'delete'){
+            if(!window.confirm('Delete this note and its file permanently? This cannot be undone.')){
+              b.disabled = false;
+              return;
+            }
+            NN.api('/api/admin/notes/' + id, { method: 'DELETE' })
+              .then(function(){ busy = false; load(); })
+              .catch(function(){ b.disabled = false; });
+          }
+        });
+      });
+    }).catch(function(){
+      busy = false;
+      document.getElementById('adminNotesRoot').innerHTML =
+        '<div class="admin-card"><div class="notes-empty"><div class="file-ic">' + NN.icon('file-text') + '</div><h3>Could not reach the server</h3><p>Check your connection and try again.</p></div></div>';
+    });
+  }
+
+  load();
+
+  // Mobile sidebar toggle
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+  </script>
+</body>
+</html>

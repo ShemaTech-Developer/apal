@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notifications — APALINK Admin</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/logo/favicon.png">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/admin.css">
+</head>
+<body class="admin-body">
+  <div class="admin-shell">
+    <aside class="admin-side" id="adminSide">
+      <a class="brand" href="../../index.html"><img src="../../assets/logo/apalink-logo.png" alt="APALINK"><b>APA</b><span>LINK</span></a>
+      <nav class="admin-nav" id="adminNav">
+        <a class="anav" href="index.html"><span data-icon="layout-dashboard"></span>Dashboard</a>
+        <a class="anav" href="users.html"><span data-icon="users"></span>Users</a>
+        <a class="anav" href="teachers.html"><span data-icon="user-plus"></span>Assign Teachers</a>
+        <a class="anav" href="notes.html"><span data-icon="file-text"></span>Notes &amp; files</a>
+        <a class="anav" href="announcements.html"><span data-icon="megaphone"></span>Announcements</a>
+        <a class="anav" href="messages.html"><span data-icon="message-square"></span>Messages</a>
+        <a class="anav" href="reports.html"><span data-icon="shield"></span>Reports</a>
+        <a class="anav" href="schools.html"><span data-icon="school"></span>Schools</a>
+        <a class="anav" href="classes.html"><span data-icon="users"></span>Classes</a>
+        <a class="anav" href="timetable-management.html"><span data-icon="calendar"></span>Timetables</a>
+        <a class="anav" href="settings.html"><span data-icon="settings"></span>Settings</a>
+      </nav>
+      <div class="admin-side-foot">
+        <a class="btn btn-ghost btn-block" href="../../index.html">View site</a>
+        <button class="btn btn-ghost btn-block" id="adminLogout" type="button">Log out</button>
+      </div>
+    </aside>
+    <div class="admin-overlay" id="adminOverlay"></div>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <button class="btn btn-ghost admin-menu" id="adminMenu" type="button" aria-label="Menu"><span data-icon="menu"></span></button>
+        <div class="admin-title">
+          <h1>Notifications</h1>
+          <p>Everything the platform wants your attention for.</p>
+        </div>
+        <div class="top-user" id="topUser" title="Signed in">
+          <span class="avatar" id="topAvatar">A</span>
+          <span class="top-user-meta"><b id="topUserName">Administrator</b><small id="topUserRole">Administrator</small></span>
+        </div>
+      </header>
+
+      <div id="pageAlert" class="alert" role="status"></div>
+
+      <section class="admin-card">
+        <div class="card-head"><h2>All notifications</h2><button class="btn btn-ghost" id="markAllBtn" type="button">Mark all as read</button></div>
+        <ul class="plain-list" id="notifList"><li class="muted">Loading…</li></ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/icons.js"></script>
+  <script src="../../js/topuser.js"></script>
+  <script>
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmtWhen(s){ return s ? String(s).replace('T',' ').slice(0,16) : ''; }
+  var alertBox = document.getElementById('pageAlert');
+  var alertT;
+  function flash(msg, type){
+    alertBox.textContent = msg || '';
+    alertBox.className = 'alert show ' + (type || 'success');
+    clearTimeout(alertT);
+    if(msg) alertT = setTimeout(function(){ alertBox.className = 'alert'; }, 4000);
+  }
+
+  function render(rows){
+    var list = document.getElementById('notifList');
+    if (!rows.length) { list.innerHTML = '<li class="muted">No notifications yet — you will see messages, live classes and system alerts here.</li>'; return; }
+    list.innerHTML = rows.map(function (n) {
+      return '<li style="display:flex;justify-content:space-between;gap:14px;align-items:center;' + (n.isRead ? '' : 'border-left:3px solid var(--blue);') + '">' +
+        '<span style="min-width:0"><b>' + esc(n.title || 'Notification') + '</b>' +
+          '<br><small class="muted">' + esc(n.body || '') + '</small><br>' +
+          '<small class="muted">' + fmtWhen(n.createdAt) + '</small></span>' +
+        (n.isRead ? '' : '<button class="btn btn-ghost" data-read="' + n.id + '" type="button">Mark read</button>') +
+      '</li>';
+    }).join('');
+    list.querySelectorAll('[data-read]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        NN.api('/api/notifications/' + b.dataset.read + '/read', { method: 'POST' }).then(function (r) { if (r.ok) load(); });
+      });
+    });
+    list.querySelectorAll('li b').forEach(function () {});
+  }
+
+  function load(){
+    NN.api('/api/notifications').then(function (r) {
+      render((r.ok && r.data && Array.isArray(r.data.notifications)) ? r.data.notifications : []);
+    }).catch(function () { document.getElementById('notifList').innerHTML = '<li class="muted">Could not load notifications.</li>'; });
+  }
+  document.getElementById('markAllBtn').addEventListener('click', function () {
+    NN.api('/api/notifications/read-all', { method: 'POST' }).then(function (r) {
+      flash(r.ok ? 'All notifications marked as read.' : 'Could not mark as read.', r.ok ? 'success' : 'error');
+      load();
+    });
+  });
+
+  (function(){
+    var menu = document.getElementById('adminMenu'), side = document.getElementById('adminSide'), ov = document.getElementById('adminOverlay');
+    function close(){ side.classList.remove('open'); ov.classList.remove('show'); }
+    menu.addEventListener('click', function(){ side.classList.toggle('open'); ov.classList.toggle('show', side.classList.contains('open')); });
+    ov.addEventListener('click', close);
+    side.querySelectorAll('a.anav').forEach(function(a){ a.addEventListener('click', close); });
+  })();
+
+  document.getElementById('adminLogout').addEventListener('click', function(){
+    NN.api('/api/auth/logout', {method:'POST'}).then(function(){ window.location.href = 'login.html'; });
+  });
+
+  load();
+  </script>
+</body>
+</html>

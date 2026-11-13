@@ -1,0 +1,25 @@
+{
+  "name": "apalink",
+  "version": "0.5.0",
+  "description": "APALINK — school notes platform (Milestone 5: announcements, admin console, search, preview, history)",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "node --env-file=.env server/app.js",
+    "dev": "node --env-file=.env --watch server/app.js",
+    "test": "node --env-file=.env tests/smoke.test.js",
+    "test:notes": "node --env-file=.env tests/notes.test.js",
+    "test:m3": "node --env-file=.env tests/m3.test.js",
+    "test:admin": "node --env-file=.env tests/admin.test.js",
+    "test:m5": "node --env-file=.env tests/m5.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.5.0",
+    "pdf-parse": "^1.1.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
